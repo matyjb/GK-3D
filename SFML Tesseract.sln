@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFML Tesseract", "SFML Tesseract\SFML Tesseract.csproj", "{79C43108-BF4D-4004-8818-0B5DF1BA0262}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{79C43108-BF4D-4004-8818-0B5DF1BA0262}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C43108-BF4D-4004-8818-0B5DF1BA0262}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C43108-BF4D-4004-8818-0B5DF1BA0262}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C43108-BF4D-4004-8818-0B5DF1BA0262}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CBB19975-2923-40E9-A851-D903949D3B3D}
+	EndGlobalSection
+EndGlobal
