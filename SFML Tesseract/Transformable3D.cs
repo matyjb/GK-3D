@@ -1,4 +1,5 @@
 ﻿using SFML.System;
+using System;
 
 namespace SFML_Tesseract
 {
@@ -9,7 +10,7 @@ namespace SFML_Tesseract
         private Vector3f scale = new Vector3f(1, 1, 1);
         private Vector3f origin;
         public Vector3f Position { get=>position; set { position = value;transformUpdateNeeded = true; } }
-        public Vector3f Rotation { get=>rotation; set { rotation = value; transformUpdateNeeded = true; } }
+        public Vector3f Rotation { get=>rotation; set { rotation = new Vector3f(value.X % (2 * (float)Math.PI), value.Y % (2 * (float)Math.PI), value.Z % (2 * (float)Math.PI)); transformUpdateNeeded = true; } }
         public Vector3f Scale { get=>scale; set { scale = value; transformUpdateNeeded = true; } }
         public Vector3f Origin { get=>origin; set { origin = value; transformUpdateNeeded = true; } }
 

@@ -65,7 +65,7 @@ namespace SFML_Tesseract
                                                sinZ,  cosZ, 0, 0,
                                                   0,     0, 1, 0,
                                                   0,     0, 0, 1);
-            Transform3D rot = rotX * rotY * rotZ;
+            Transform3D rot = rotZ * rotY * rotX;
             Matrix = (rot * this).Matrix;
             return this;
         }
