@@ -17,14 +17,16 @@ namespace SFML_Tesseract
         //public static Cube3D cube = new Cube3D() {Position = new Vector3f(-50,-50,100) };
         public static Plane3D plane = new Plane3D()
         {
-            Position = new Vector3f(-50, -50, 100),
+            Position = new Vector3f(-50, -250, 100),
             Rotation =new Vector3f(30 * (float)Math.PI / 180, 30 * (float)Math.PI / 180, 30 * (float)Math.PI / 180),
             FillColor = Color.Red,
         };
         public static Plane3D plane2 = new Plane3D()
         {
-            Position = new Vector3f(-100, 0, 100),
-            //Rotation = new Vector3f(30 * (float)Math.PI / 180, 30 * (float)Math.PI / 180, 30 * (float)Math.PI / 180),
+            Position = new Vector3f(-100, 300, 100),
+            Height = 1000,
+            Width = 1000,
+            Rotation = new Vector3f(90 * (float)Math.PI / 180, 0,0),
             FillColor = Color.Blue,
         };
         public static AxisIndicator axisIndicator = new AxisIndicator();
