@@ -23,6 +23,7 @@ namespace SFML_Tesseract
         };
         public static Time deltaTime;
 
+        public static bool IsMouseCenterSnapped = false;
         public static float cameraStepsPerSec = 100;
 
         static void Main(string[] args)
@@ -34,6 +35,9 @@ namespace SFML_Tesseract
             window.SetKeyRepeatEnabled(false);
             window.KeyPressed += Window_KeyPressed;
             window.KeyReleased += Window_KeyReleased;
+            
+            window.MouseMoved += Window_MouseMoved;
+            window.MouseButtonPressed += Window_MouseButtonPressed;
             while(window.IsOpen)
             {
                 window.DispatchEvents();
@@ -43,6 +47,27 @@ namespace SFML_Tesseract
                 window.Draw(renEngine);
                 window.Display();
                 deltaTime = deltaClock.Restart();
+            }
+        }
+
+        private static void Window_MouseButtonPressed(object sender, MouseButtonEventArgs e)
+        {
+            IsMouseCenterSnapped = true;
+        }
+
+        private static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
+        {
+            if (IsMouseCenterSnapped)
+            {
+                Vector2i windowCenter = (Vector2i)window.Size / 2;
+                Mouse.SetPosition(windowCenter, window);
+                Vector2i delta = new Vector2i(e.X, e.Y) - windowCenter;
+                float rotationScale = 1;
+                //mouse move half screen = 90 deg rotation
+                float angleX = - delta.X / (float)windowCenter.X * (float)Math.PI / 2 * rotationScale; //up down
+                float angleY = - delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
+
+                Camera.Instance.Rotation += new Vector3f(angleY, angleX, 0);
             }
         }
 
@@ -73,7 +98,8 @@ namespace SFML_Tesseract
                         c.Position += new Vector3f(0, -cameraStepsPerSec * deltaTime.AsSeconds(), 0);
                         break;
                     case Keyboard.Key.Escape:
-                        window.Close();
+                        if (IsMouseCenterSnapped) IsMouseCenterSnapped = false;
+                        else window.Close();
                         break;
 
                 }
