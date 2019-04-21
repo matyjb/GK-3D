@@ -13,34 +13,24 @@ namespace SFML_Tesseract
     {
         public static Camera c = Camera.Instance;
         public static RenderWindow window = new RenderWindow(new VideoMode((uint)c.Width, (uint)c.Height), "lmao");
-        public static Cube3D cube = new Cube3D() {Position = new Vector3f(-50,-50,100) };
+        public static RenderEngine renEngine = RenderEngine.Instance;
+        //public static Cube3D cube = new Cube3D() {Position = new Vector3f(-50,-50,100) };
+        public static Plane3D plane = new Plane3D()
+        {
+            Position = new Vector3f(-50, -50, 100),
+            Rotation =new Vector3f(30 * (float)Math.PI / 180, 30 * (float)Math.PI / 180, 30 * (float)Math.PI / 180),
+            FillColor = Color.Red,
+        };
         public static Time deltaTime;
 
         public static float cameraStepsPerSec = 100;
 
         static void Main(string[] args)
         {
-            //Matrix a = new Matrix(new double[3, 1] { { 1 }, { 2 }, { 4 } });
-            //Matrix b = Matrix.RotationMatrix(90*Math.PI/180, new int[] { 0,1,0 });
-            //Matrix r = b*a;
-
-            //Console.WriteLine(a);
-            //Console.WriteLine(b);
-            //Console.WriteLine(r);
-            //Cube4D c = new Cube4D();
-            //Matrix r = Matrix.RotationMatrix(30 * Math.PI / 180, new int[] { 0, 0, 1, 1 });
-            //r *= Matrix.RotationMatrix(30 * Math.PI / 180, new int[] { 0, 1, 0, 1 });
-            //r *= Matrix.RotationMatrix(30 * Math.PI / 180, new int[] { 1, 0, 0, 1 });
-            //r *= Matrix.RotationMatrix(30 * Math.PI / 180, new int[] { 0, 1, 1, 0 });
-            //r *= Matrix.RotationMatrix(30 * Math.PI / 180, new int[] { 1, 0, 1, 0 });
-            //r *= Matrix.RotationMatrix(30 * Math.PI / 180, new int[] { 1, 1, 0, 0 });
-            //c.Points = r * c.Points;
-            //Console.WriteLine(c);
             Clock deltaClock = new Clock();
             deltaTime = deltaClock.Restart();
             window.SetView(c.view);
             window.SetFramerateLimit(60);
-            //c.Position = new Vector3f(100, 100, 0);
             window.SetKeyRepeatEnabled(false);
             window.KeyPressed += Window_KeyPressed;
             window.KeyReleased += Window_KeyReleased;
@@ -49,7 +39,8 @@ namespace SFML_Tesseract
                 window.DispatchEvents();
                 Keys();
                 window.Clear();
-                window.Draw(cube);
+                window.Draw(plane);
+                window.Draw(renEngine);
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }

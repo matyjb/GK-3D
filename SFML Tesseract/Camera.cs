@@ -1,17 +1,12 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SFML_Tesseract
 {
-    public sealed class Camera
+    public sealed class Camera : Transformable3D
     {
-        private static readonly Camera instance = new Camera();
-        public static Camera Instance { get => instance; }
+        public static Camera Instance { get; } = new Camera();
 
         public Vector2f Resolution { get => new Vector2f(Width, Height); set { Width = value.X; Height = value.Y; } }
         public float Width { get => view.Size.X; set => view = new View(new FloatRect(-value / 2, -Height / 2, value, Height)); }
@@ -21,8 +16,6 @@ namespace SFML_Tesseract
         public float Sdistance { get; private set; } = 400;
 
         public float FOVAngle { get => 2 * (float)Math.Atan(Width / 2 / Sdistance); set => Sdistance = Width / 2 / (float)Math.Tan(value/2); }
-
-        public Vector3f Position { get; set; }
 
 
         // Explicit static constructor to tell C# compiler

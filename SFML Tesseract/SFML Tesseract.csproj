@@ -77,10 +77,16 @@
   <ItemGroup>
     <Compile Include="Camera.cs" />
     <Compile Include="Cube3D.cs" />
-    <Compile Include="Cube4D.cs" />
-    <Compile Include="Matrix.cs" />
+    <Compile Include="Plane3D.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RenderEngine.cs" />
+    <Compile Include="stare\Camera.cs" />
+    <Compile Include="stare\Cube3D.cs" />
+    <Compile Include="stare\Cube4D.cs" />
+    <Compile Include="stare\Matrix.cs" />
+    <Compile Include="Transform3D.cs" />
+    <Compile Include="Transformable3D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
