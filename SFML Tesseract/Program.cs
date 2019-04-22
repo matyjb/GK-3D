@@ -44,6 +44,7 @@ namespace SFML_Tesseract
             window.SetKeyRepeatEnabled(false);
             window.KeyPressed += Window_KeyPressed;
             window.KeyReleased += Window_KeyReleased;
+            window.Resized += Window_Resized;
             
             window.MouseMoved += Window_MouseMoved;
             window.MouseButtonPressed += Window_MouseButtonPressed;
@@ -59,6 +60,15 @@ namespace SFML_Tesseract
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }
+        }
+
+        private static void Window_Resized(object sender, SizeEventArgs e)
+        {
+            float fovAngle = c.FOVAngle;
+            View newView = new View(new FloatRect(-e.Width/2f, -e.Height/2f, e.Width, e.Height));
+            window.SetView(newView);
+            c.view = newView;
+            c.FOVAngle = fovAngle;
         }
 
         private static void Window_MouseButtonPressed(object sender, MouseButtonEventArgs e)
