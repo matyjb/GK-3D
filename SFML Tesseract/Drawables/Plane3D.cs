@@ -46,7 +46,7 @@ namespace SFML_Tesseract
                     new Vertex(new Vector2f(v[2].X,v[2].Y), FillColor),
                     new Vertex(new Vector2f(v[3].X,v[3].Y), FillColor),
                 };
-                RenderItem r = new RenderItem() { States = states, Type = PrimitiveType.Quads, Vertices = vs.ToArray() };
+                RenderItem r = new RenderItem(vs.ToArray(), PrimitiveType.Quads,states);
                 RenderEngine.Instance.RenderItems.Add(r);
 
                 List<Vertex> vs2 = new List<Vertex>
@@ -58,7 +58,7 @@ namespace SFML_Tesseract
                     new Vertex(new Vector2f(v[0].X, v[0].Y), OutlineColor),
                 };
 
-                RenderItem r2 = new RenderItem() { States = states, Type = PrimitiveType.LineStrip, Vertices = vs2.ToArray() };
+                RenderItem r2 = new RenderItem(vs2.ToArray(), PrimitiveType.LineStrip,states);
                 RenderEngine.Instance.RenderItems.Add(r2);
             }
         }

@@ -45,6 +45,7 @@ namespace SFML_Tesseract
             window.KeyPressed += Window_KeyPressed;
             window.KeyReleased += Window_KeyReleased;
             window.Resized += Window_Resized;
+            window.Closed += Window_Closed;
             
             window.MouseMoved += Window_MouseMoved;
             window.MouseButtonPressed += Window_MouseButtonPressed;
@@ -60,6 +61,11 @@ namespace SFML_Tesseract
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }
+        }
+
+        private static void Window_Closed(object sender, EventArgs e)
+        {
+            window.Close();
         }
 
         private static void Window_Resized(object sender, SizeEventArgs e)
