@@ -26,13 +26,14 @@ namespace GK
             window.SetView(c.view);
             window.SetFramerateLimit(60);
             window.SetKeyRepeatEnabled(false);
+
             window.KeyPressed += Window_KeyPressed;
             window.KeyReleased += Window_KeyReleased;
             window.Resized += Window_Resized;
             window.Closed += Window_Closed;
-            
             window.MouseMoved += Window_MouseMoved;
             window.MouseButtonPressed += Window_MouseButtonPressed;
+
             while(window.IsOpen)
             {
                 window.DispatchEvents();
@@ -98,6 +99,7 @@ namespace GK
             {
                 switch (key)
                 {
+                    //camera moving
                     case Keyboard.Key.W:
                         c.Position += t.TransformPoint(new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds()));
                         break;
@@ -115,6 +117,20 @@ namespace GK
                         break;
                     case Keyboard.Key.Space:
                         c.Position += t.TransformPoint(new Vector3f(0, -cameraStepsPerSec * deltaTime.AsSeconds(), 0));
+                        break;
+                    //camera tilt
+                    case Keyboard.Key.Q:
+                        c.Rotation -= new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds() / 200);
+                        break;
+                    case Keyboard.Key.E:
+                        c.Rotation += new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds() / 200);
+                        break;
+                    //FOV
+                    case Keyboard.Key.P:
+                        c.FOVAngle -= cameraStepsPerSec * deltaTime.AsSeconds() / 200;
+                        break;
+                    case Keyboard.Key.O:
+                        c.FOVAngle += cameraStepsPerSec * deltaTime.AsSeconds() / 200;
                         break;
                     case Keyboard.Key.Escape:
                         if (IsMouseCenterSnapped) IsMouseCenterSnapped = false;

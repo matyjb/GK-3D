@@ -65,7 +65,7 @@ namespace GK.Transforming
                                                sinZ, cosZ, 0, 0,
                                                   0, 0, 1, 0,
                                                   0, 0, 0, 1);
-            Transform3D rot = rotZ * rotY * rotX;
+            Transform3D rot = rotY * rotX * rotZ;
             Matrix = (rot * this).Matrix;
             return this;
         }

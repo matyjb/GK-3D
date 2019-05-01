@@ -14,7 +14,8 @@ namespace GK.DrawingView
         public float Height { get => view.Size.Y; set => view = new View(new FloatRect(-Width / 2, -value / 2, Width, value)); }
         public View view { get; set; } = new View(new FloatRect(-400, -300, 800, 600));
 
-        public float Sdistance { get; private set; } = 400;
+        private float sdistance = 400;
+        public float Sdistance { get=>sdistance; private set { sdistance = value; Origin = new Vector3f(0, 0, -value); } }
 
         public float FOVAngle { get => 2 * (float)Math.Atan(Width / 2 / Sdistance); set => Sdistance = Width / 2 / (float)Math.Tan(value / 2); }
 
@@ -27,6 +28,8 @@ namespace GK.DrawingView
 
         private Camera()
         {
+            Origin = new Vector3f(0, 0, -sdistance);
+            Position = new Vector3f(0, 0, -sdistance);
         }
 
     }
