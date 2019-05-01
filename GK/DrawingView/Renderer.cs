@@ -15,7 +15,9 @@ namespace GK.DrawingView
 
         public List<IDrawable3D> drawables = new List<IDrawable3D>()
         {
-            new Triangle(new Vector3f(0,0,0),new Vector3f(0,-2,0),new Vector3f(1,0,1), Color.Red) {Position=new Vector3f(0,0,2), Scale=new Vector3f(100,100,100)}
+            new Quad(new Vector3f(-1,0,0),new Vector3f(2,0,1),new Vector3f(2,-1,1),new Vector3f(-1,-4,0), Color.Blue) {Position=new Vector3f(0,0,200), Scale=new Vector3f(100,100,100)},
+            new Triangle(new Vector3f(0,0,0),new Vector3f(0,-2,0),new Vector3f(1,0,1), Color.Red) {Scale=new Vector3f(100,100,100)},
+            new Cuboid(1,-1,1,Color.Green) {Scale=new Vector3f(50,50,50)}
         };
         public static Vertex[] PerspectiveView(List<Vertex3D> shapeVertices)
         {

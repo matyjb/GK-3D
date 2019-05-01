@@ -62,8 +62,16 @@ namespace GK
 
         private static void Window_MouseButtonPressed(object sender, MouseButtonEventArgs e)
         {
-            IsMouseCenterSnapped = true;
-            window.SetMouseCursorVisible(false);
+            if (e.Button == Mouse.Button.Left)
+            {
+                IsMouseCenterSnapped = true;
+                window.SetMouseCursorVisible(false);
+            }
+            else if (e.Button == Mouse.Button.Right)
+            {
+                IsMouseCenterSnapped = false;
+                window.SetMouseCursorVisible(true);
+            }
         }
 
         private static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
@@ -74,10 +82,16 @@ namespace GK
                 Mouse.SetPosition(windowCenter, window);
                 //translate mouse movement to 3d rotation
                 Vector2i delta = new Vector2i(e.X, e.Y) - windowCenter;
+
                 float rotationScale = 0.7f;
                 //mouse move half screen = 90 deg rotation
-                float angleX = -delta.X / (float)windowCenter.X * (float)Math.PI / 2 * rotationScale; //up down
-                float angleY = -delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
+                float angleXnoZ = -delta.X / (float)windowCenter.X * (float)Math.PI / 2 * rotationScale; //up down
+                float angleYnoZ = delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
+                //including Z rotation
+                float sinZ = (float)Math.Sin(Camera.Instance.Rotation.Z);
+                float cosZ = (float)Math.Cos(Camera.Instance.Rotation.Z);
+                float angleX = angleXnoZ * cosZ + angleYnoZ * sinZ;
+                float angleY = angleXnoZ * sinZ - angleYnoZ * cosZ;
 
                 ////bound camera X angle to [-90 ; 90]
                 float finalAngleY = Camera.Instance.Rotation.X + angleY;
@@ -133,8 +147,7 @@ namespace GK
                         c.FOVAngle += cameraStepsPerSec * deltaTime.AsSeconds() / 200;
                         break;
                     case Keyboard.Key.Escape:
-                        if (IsMouseCenterSnapped) IsMouseCenterSnapped = false;
-                        else window.Close();
+                        window.Close();
                         break;
 
                 }

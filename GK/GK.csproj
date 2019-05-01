@@ -76,6 +76,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Drawables\AxisIndicator.cs" />
+    <Compile Include="Drawables\Cuboid.cs" />
+    <Compile Include="Drawables\Quad.cs" />
     <Compile Include="DrawingView\Camera.cs" />
     <Compile Include="Interfaces\IDrawable3D.cs" />
     <Compile Include="Structs\Vertex3D.cs" />
