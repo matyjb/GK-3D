@@ -10,7 +10,7 @@ namespace GK.Drawables
         public void Draw(RenderTarget target, RenderStates states)
         {
             Vector3f vX = new Vector3f(20, 0, 0);
-            Vector3f vY = new Vector3f(0, -20, 0);
+            Vector3f vY = new Vector3f(0, 20, 0);
             Vector3f vZ = new Vector3f(0, 0, 20);
 
             Position = Camera.Instance.Position;
@@ -25,7 +25,7 @@ namespace GK.Drawables
             {
                 new Vertex(new Vector2f(vX.X,-vX.Y),Color.Red),
                 new Vertex(new Vector2f(),Color.Red),
-                new Vertex(new Vector2f(-vY.X,vY.Y),Color.Green),
+                new Vertex(new Vector2f(vY.X,-vY.Y),Color.Green),
                 new Vertex(new Vector2f(),Color.Green),
                 new Vertex(new Vector2f(vZ.X,-vZ.Y),Color.Blue),
                 new Vertex(new Vector2f(),Color.Blue),
