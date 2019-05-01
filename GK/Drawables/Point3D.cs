@@ -2,7 +2,7 @@
 using SFML.System;
 using System.Collections.Generic;
 
-namespace SFML_Tesseract.Drawables
+namespace GK.Drawables
 {
     class Point3D : Transformable3D, Drawable
     {

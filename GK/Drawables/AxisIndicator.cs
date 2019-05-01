@@ -1,12 +1,9 @@
 ﻿using SFML.Graphics;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using GK.DrawingView;
+using GK.Transforming;
 
-namespace SFML_Tesseract
+namespace GK.Drawables
 {
     class AxisIndicator : Transformable3D, Drawable
     {

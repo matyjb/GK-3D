@@ -1,8 +1,9 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+using GK.Transforming;
 using System;
 
-namespace SFML_Tesseract
+namespace GK.DrawingView
 {
     public sealed class Camera : Transformable3D
     {
@@ -15,7 +16,7 @@ namespace SFML_Tesseract
 
         public float Sdistance { get; private set; } = 400;
 
-        public float FOVAngle { get => 2 * (float)Math.Atan(Width / 2 / Sdistance); set => Sdistance = Width / 2 / (float)Math.Tan(value/2); }
+        public float FOVAngle { get => 2 * (float)Math.Atan(Width / 2 / Sdistance); set => Sdistance = Width / 2 / (float)Math.Tan(value / 2); }
 
 
         // Explicit static constructor to tell C# compiler

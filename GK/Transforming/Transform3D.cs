@@ -1,7 +1,7 @@
 ﻿using SFML.System;
 using System;
 
-namespace SFML_Tesseract
+namespace GK.Transforming
 {
     public class Transform3D
     {
@@ -13,7 +13,7 @@ namespace SFML_Tesseract
                            float a20, float a21, float a22, float a23,
                            float a30, float a31, float a32, float a33)
         {
-            Matrix = new float[4, 4] { { a00, a01, a02, a03 }, 
+            Matrix = new float[4, 4] { { a00, a01, a02, a03 },
                                        { a10, a11, a12, a13 },
                                        { a20, a21, a22, a23 },
                                        { a30, a31, a32, a33 } };
@@ -26,7 +26,7 @@ namespace SFML_Tesseract
         public Vector3f TransformPoint(Vector3f v)
         {
             float[] tmp = new float[] { v.X, v.Y, v.Z, 1 };
-            float[] result = new float[] { 0,0,0 };
+            float[] result = new float[] { 0, 0, 0 };
             for (int i = 0; i < 3; i++)
             {
                 float t = 0;
@@ -53,18 +53,18 @@ namespace SFML_Tesseract
             float sinY = (float)Math.Sin(angles.Y);
             float cosZ = (float)Math.Cos(angles.Z);
             float sinZ = (float)Math.Sin(angles.Z);
-            Transform3D rotX = new Transform3D(1,    0,     0, 0,
+            Transform3D rotX = new Transform3D(1, 0, 0, 0,
                                                0, cosX, -sinX, 0,
-                                               0, sinX,  cosX, 0,
-                                               0,    0,     0, 1);
+                                               0, sinX, cosX, 0,
+                                               0, 0, 0, 1);
             Transform3D rotY = new Transform3D(cosY, 0, -sinY, 0,
-                                                  0, 1,     0, 0,
-                                               sinY, 0,  cosY, 0,
-                                                  0, 0,     0, 1);
+                                                  0, 1, 0, 0,
+                                               sinY, 0, cosY, 0,
+                                                  0, 0, 0, 1);
             Transform3D rotZ = new Transform3D(cosZ, -sinZ, 0, 0,
-                                               sinZ,  cosZ, 0, 0,
-                                                  0,     0, 1, 0,
-                                                  0,     0, 0, 1);
+                                               sinZ, cosZ, 0, 0,
+                                                  0, 0, 1, 0,
+                                                  0, 0, 0, 1);
             Transform3D rot = rotZ * rotY * rotX;
             Matrix = (rot * this).Matrix;
             return this;
@@ -78,7 +78,7 @@ namespace SFML_Tesseract
 
         public static Transform3D operator *(Transform3D left, Transform3D right)
         {
-            float[,] result = new float[4,4];
+            float[,] result = new float[4, 4];
             for (int row = 0; row < 4; row++)
             {
                 for (int col = 0; col < 4; col++)

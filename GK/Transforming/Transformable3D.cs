@@ -1,18 +1,18 @@
 ﻿using SFML.System;
 using System;
 
-namespace SFML_Tesseract
+namespace GK.Transforming
 {
-    public class Transformable3D
+    public abstract class Transformable3D
     {
         private Vector3f position;
         private Vector3f rotation;
         private Vector3f scale = new Vector3f(1, 1, 1);
         private Vector3f origin;
-        public Vector3f Position { get=>position; set { position = value;transformUpdateNeeded = true; } }
-        public Vector3f Rotation { get=>rotation; set { rotation = new Vector3f(value.X % (2 * (float)Math.PI), value.Y % (2 * (float)Math.PI), value.Z % (2 * (float)Math.PI)); transformUpdateNeeded = true; } }
-        public Vector3f Scale { get=>scale; set { scale = value; transformUpdateNeeded = true; } }
-        public Vector3f Origin { get=>origin; set { origin = value; transformUpdateNeeded = true; } }
+        public Vector3f Position { get => position; set { position = value; transformUpdateNeeded = true; } }
+        public Vector3f Rotation { get => rotation; set { rotation = new Vector3f(value.X % (2 * (float)Math.PI), value.Y % (2 * (float)Math.PI), value.Z % (2 * (float)Math.PI)); transformUpdateNeeded = true; } }
+        public Vector3f Scale { get => scale; set { scale = value; transformUpdateNeeded = true; } }
+        public Vector3f Origin { get => origin; set { origin = value; transformUpdateNeeded = true; } }
 
         private bool transformUpdateNeeded = false;
 
@@ -54,14 +54,14 @@ namespace SFML_Tesseract
                 float M43 = Transform.Matrix[3, 2];
                 float M44 = Transform.Matrix[3, 3];
 
-                float det = (M11 * M22 * M33 * M44) + (M11 * M23 * M34 * M42) + (M11 * M24 * M32 * M43)
-                - (M11 * M24 * M33 * M42) - (M11 * M23 * M32 * M44) - (M11 * M22 * M34 * M43)
-                - (M12 * M21 * M33 * M44) - (M13 * M21 * M34 * M42) - (M14 * M21 * M32 * M43)
-                + (M14 * M21 * M33 * M42) + (M13 * M21 * M32 * M44) + (M12 * M21 * M34 * M43)
-                + (M12 * M23 * M31 * M44) + (M13 * M24 * M31 * M42) + (M14 * M22 * M31 * M43)
-                - (M14 * M23 * M31 * M42) - (M13 * M22 * M31 * M44) - (M12 * M24 * M31 * M43)
-                - (M12 * M23 * M34 * M41) - (M13 * M24 * M32 * M41) - (M14 * M22 * M33 * M41)
-                + (M14 * M23 * M32 * M41) + (M13 * M22 * M34 * M41) + (M12 * M24 * M33 * M41);
+                float det = M11 * M22 * M33 * M44 + M11 * M23 * M34 * M42 + M11 * M24 * M32 * M43
+                - M11 * M24 * M33 * M42 - M11 * M23 * M32 * M44 - M11 * M22 * M34 * M43
+                - M12 * M21 * M33 * M44 - M13 * M21 * M34 * M42 - M14 * M21 * M32 * M43
+                + M14 * M21 * M33 * M42 + M13 * M21 * M32 * M44 + M12 * M21 * M34 * M43
+                + M12 * M23 * M31 * M44 + M13 * M24 * M31 * M42 + M14 * M22 * M31 * M43
+                - M14 * M23 * M31 * M42 - M13 * M22 * M31 * M44 - M12 * M24 * M31 * M43
+                - M12 * M23 * M34 * M41 - M13 * M24 * M32 * M41 - M14 * M22 * M33 * M41
+                + M14 * M23 * M32 * M41 + M13 * M22 * M34 * M41 + M12 * M24 * M33 * M41;
                 float ans11 = (M22 * M33 * M44 + M23 * M34 * M42 + M24 * M32 * M43 - M24 * M33 * M42 - M23 * M32 * M44 - M22 * M34 * M43) / det;
                 float ans12 = (-M12 * M33 * M44 - M13 * M34 * M42 - M14 * M32 * M43 + M14 * M33 * M42 + M13 * M32 * M44 + M12 * M34 * M43) / det;
                 float ans13 = (M12 * M23 * M44 + M13 * M24 * M42 + M14 * M22 * M43 - M14 * M23 * M42 - M13 * M22 * M44 - M12 * M24 * M43) / det;
