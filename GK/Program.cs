@@ -86,7 +86,7 @@ namespace GK
                 float rotationScale = 0.7f;
                 //mouse move half screen = 90 deg rotation
                 float angleXnoZ = -delta.X / (float)windowCenter.X * (float)Math.PI / 2 * rotationScale; //up down
-                float angleYnoZ = delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
+                float angleYnoZ = -delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
                 //including Z rotation
                 float sinZ = (float)Math.Sin(Camera.Instance.Rotation.Z);
                 float cosZ = (float)Math.Cos(Camera.Instance.Rotation.Z);
@@ -127,17 +127,17 @@ namespace GK
                         c.Position += t.TransformPoint(new Vector3f(cameraStepsPerSec * deltaTime.AsSeconds(), 0, 0));
                         break;
                     case Keyboard.Key.LShift:
-                        c.Position += t.TransformPoint(new Vector3f(0, cameraStepsPerSec * deltaTime.AsSeconds(), 0));
+                        c.Position += t.TransformPoint(new Vector3f(0, -cameraStepsPerSec * deltaTime.AsSeconds(), 0));
                         break;
                     case Keyboard.Key.Space:
-                        c.Position += t.TransformPoint(new Vector3f(0, -cameraStepsPerSec * deltaTime.AsSeconds(), 0));
+                        c.Position += t.TransformPoint(new Vector3f(0, cameraStepsPerSec * deltaTime.AsSeconds(), 0));
                         break;
                     //camera tilt
                     case Keyboard.Key.Q:
-                        c.Rotation -= new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds() / 200);
+                        c.Rotation += new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds() / 200);
                         break;
                     case Keyboard.Key.E:
-                        c.Rotation += new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds() / 200);
+                        c.Rotation -= new Vector3f(0, 0, cameraStepsPerSec * deltaTime.AsSeconds() / 200);
                         break;
                     //FOV
                     case Keyboard.Key.P:

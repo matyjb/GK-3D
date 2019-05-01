@@ -15,9 +15,9 @@ namespace GK.DrawingView
 
         public List<IDrawable3D> drawables = new List<IDrawable3D>()
         {
-            new Quad(new Vector3f(-1,0,0),new Vector3f(2,0,1),new Vector3f(2,-1,1),new Vector3f(-1,-4,0), Color.Blue) {Position=new Vector3f(0,0,200), Scale=new Vector3f(100,100,100)},
-            new Triangle(new Vector3f(0,0,0),new Vector3f(0,-2,0),new Vector3f(1,0,1), Color.Red) {Scale=new Vector3f(100,100,100)},
-            new Cuboid(1,-1,1,Color.Green) {Scale=new Vector3f(50,50,50)}
+            new Quad(new Vector3f(-1,0,0),new Vector3f(2,0,1),new Vector3f(2,1,1),new Vector3f(-1,4,0), Color.Blue) {Position=new Vector3f(0,0,200), Scale=new Vector3f(100,100,100)},
+            new Triangle(new Vector3f(0,0,0),new Vector3f(0,2,0),new Vector3f(1,0,1), Color.Red) {Scale=new Vector3f(100,100,100)},
+            new Cuboid(1,1,1,Color.Green) {Scale=new Vector3f(50,50,50)}
         };
         public static Vertex[] PerspectiveView(List<Vertex3D> shapeVertices)
         {
@@ -28,7 +28,7 @@ namespace GK.DrawingView
                 var shapeVertex = shapeVertices[i];
                 Vector3f s = new Vector3f(camSDistance / (shapeVertex.Position.Z + camSDistance), camSDistance / (shapeVertex.Position.Z + camSDistance), 0);
                 shapeVertex.Position.X *= s.X;
-                shapeVertex.Position.Y *= s.Y;
+                shapeVertex.Position.Y *= - s.Y; //so Y axis is pointing up in 3d space
                 shapeVertex.Position.Z *= s.Z;
                 result.Add(new Vertex(new Vector2f(shapeVertex.Position.X, shapeVertex.Position.Y), shapeVertex.Color));
             }
