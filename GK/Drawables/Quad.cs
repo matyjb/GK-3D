@@ -25,7 +25,7 @@ namespace GK.Drawables
         }
         public List<List<Vertex3D>> GetShapes()
         {
-            Transform3D t = ParentTransform * Transform;
+            Transform3D t = Transform;
             Triangle t0 = new Triangle(v0, v1, v2, Color) { ParentTransform = t };
             Triangle t1 = new Triangle(v0, v2, v3, Color) { ParentTransform = t };
             List<List<Vertex3D>> l = new List<List<Vertex3D>>();

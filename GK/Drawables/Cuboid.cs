@@ -25,7 +25,7 @@ namespace GK.Drawables
 
         public List<List<Vertex3D>> GetShapes()
         {
-            Transform3D t = ParentTransform * Transform;
+            Transform3D t = Transform;
             Vector3f v0 = new Vector3f(0, 0, 0);
             Vector3f v1 = new Vector3f(0, 0, ZLenght);
             Vector3f v2 = new Vector3f(0, YLenght, 0);

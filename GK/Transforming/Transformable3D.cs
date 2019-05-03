@@ -9,13 +9,14 @@ namespace GK.Transforming
         private Vector3f rotation;
         private Vector3f scale = new Vector3f(1, 1, 1);
         private Vector3f origin;
+        private Transform3D parentTransform = Transform3D.Identity;
         public Vector3f Position { get => position; set { position = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Vector3f Rotation { get => rotation; set { rotation = new Vector3f(value.X % (2 * (float)Math.PI), value.Y % (2 * (float)Math.PI), value.Z % (2 * (float)Math.PI)); transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Vector3f Scale { get => scale; set { scale = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Vector3f Origin { get => origin; set { origin = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
 
 
-        public Transform3D ParentTransform { get; set; } = Transform3D.Identity;
+        public Transform3D ParentTransform { get => parentTransform; set { parentTransform = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
 
         private Transform3D transform = Transform3D.Identity;
         private bool transformUpdateNeeded = false;
@@ -27,7 +28,8 @@ namespace GK.Transforming
             {
                 if (transformUpdateNeeded)
                 {
-                    transform = Transform3D.Identity.Translate(-Origin).Rotate(Rotation).Scale(Scale).Translate(Position);
+                    //Vector3f o = ParentTransform.TransformPoint(Origin);
+                    transform = ParentTransform * Transform3D.Identity.Translate(-Origin).Rotate(Rotation).Scale(Scale).Translate(Position);
                     transformUpdateNeeded = false;
                 }
 
@@ -84,7 +86,7 @@ namespace GK.Transforming
                     float ans43 = (-M11 * M22 * M43 - M12 * M23 * M41 - M13 * M21 * M42 + M13 * M22 * M41 + M12 * M21 * M43 + M11 * M23 * M42) / det;
                     float ans44 = (M11 * M22 * M33 + M12 * M23 * M31 + M13 * M21 * M32 - M13 * M22 * M31 - M12 * M21 * M33 - M11 * M23 * M32) / det;
 
-                    inverseTransform = new Transform3D(ans11, ans12, ans13, ans14, ans21, ans22, ans23, ans24, ans31, ans32, ans33, ans34, ans41, ans42, ans43, ans44);
+                    inverseTransform = ParentTransform * new Transform3D(ans11, ans12, ans13, ans14, ans21, ans22, ans23, ans24, ans31, ans32, ans33, ans34, ans41, ans42, ans43, ans44);
                     inverseTransformUpdateNeeded = false;
                 }
                 return inverseTransform;

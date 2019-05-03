@@ -37,5 +37,9 @@ namespace GK
         {
             return left.X + left.Y;
         }
+        public static float Distance(this Vector2f left, Vector2f right)
+        {
+            return (float)Math.Sqrt((left.X - right.X) * (left.X - right.X) + (left.Y - right.Y) * (left.Y - right.Y));
+        }
     }
 }
