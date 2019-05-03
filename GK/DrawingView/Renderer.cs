@@ -55,19 +55,135 @@ namespace GK.DrawingView
                     shapes[i][j] = v;
                 }
             }
-            //sortowanie*
-            //sortowanie wstepne (najwieksze center Z jako pierwsze)
+
+            //draw
+            PaintersAlgorithm.PerformDrawing(shapes, target, states);
+
+        }
+    }
+    public static class PaintersAlgorithm
+    {
+        private static bool Test1(List<Vertex3D> a, List<Vertex3D> b)
+        {
+            float minAX = float.MaxValue, maxAX = float.MinValue, minBX = float.MaxValue, maxBX = float.MinValue;
+            foreach (var vertA in a)
+            {
+                minAX = Math.Min(minAX, vertA.Position.X);
+                maxAX = Math.Max(maxAX, vertA.Position.X);
+            }
+            foreach (var vertB in b)
+            {
+                minBX = Math.Min(minBX, vertB.Position.X);
+                maxBX = Math.Max(maxBX, vertB.Position.X);
+            }
+            List<float> f = new List<float>() { minAX, maxAX, minBX, maxBX };
+            f = f.OrderBy(i => i).ToList();
+            if (f[0] == minAX && f[1] == maxAX) return true;
+            if (f[0] == minBX && f[1] == maxBX) return true;
+            return false;
+        }
+        private static bool Test2(List<Vertex3D> a, List<Vertex3D> b)
+        {
+            float minAY = float.MaxValue, maxAY = float.MinValue, minBY = float.MaxValue, maxBY = float.MinValue;
+            foreach (var vertA in a)
+            {
+                minAY = Math.Min(minAY, vertA.Position.Y);
+                maxAY = Math.Max(maxAY, vertA.Position.Y);
+            }
+            foreach (var vertB in b)
+            {
+                minBY = Math.Min(minAY, vertB.Position.Y);
+                maxBY = Math.Max(maxAY, vertB.Position.Y);
+            }
+            List<float> f = new List<float>() { minAY, maxAY, minBY, maxBY };
+            f = f.OrderBy(i => i).ToList();
+            if (f[0] == minAY && f[1] == maxAY) return true;
+            if (f[0] == minBY && f[1] == maxBY) return true;
+            return false;
+        }
+        private static bool Test3(List<Vertex3D> a, List<Vertex3D> b)
+        {
+            //wyzanczenie rowanania plaszczyzny
+            Vector3f v1 = a[1].Position - a[0].Position;
+            Vector3f v2 = a[1].Position - a[2].Position;
+            //wektor ortogonalny
+            Vector3f d = new Vector3f(v1.Y * v2.Z - v1.Z * v2.Y, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.Z);
+            float A = d.X;
+            float B = d.Y;
+            float C = d.Z;
+            float D = -d.X * a[0].Position.X - d.Y * a[0].Position.Y - d.Z * a[0].Position.Z;
+            for (int i = 0; i < b.Count; i++)
+            {
+                Vector3f vert = b[i].Position;
+                if (A * vert.X + B * vert.Y + C * vert.Z + D >= 0) break;
+                if (i == b.Count - 1) return true;
+            }
+            return false;
+        }
+        private static bool Test4(List<Vertex3D> a, List<Vertex3D> b)
+        {
+            //wyzanczenie rowanania plaszczyzny
+            Vector3f v1 = b[1].Position - b[0].Position;
+            Vector3f v2 = b[1].Position - b[2].Position;
+            //wektor ortogonalny
+            Vector3f d = new Vector3f(v1.Y * v2.Z - v1.Z * v2.Y, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.Z);
+            float A = d.X;
+            float B = d.Y;
+            float C = d.Z;
+            float D = -d.X * b[0].Position.X - d.Y * b[0].Position.Y - d.Z * b[0].Position.Z;
+            for (int i = 0; i < a.Count; i++)
+            {
+                Vector3f vert = a[i].Position;
+                if (A * vert.X + B * vert.Y + C * vert.Z + D >= 0) break;
+                if (i == a.Count - 1) return true;
+            }
+            return false;
+        }
+        private static bool Test5(List<Vertex3D> a, List<Vertex3D> b)
+        {
+            Vertex[] shape2dA = Renderer.PerspectiveView(a);
+            Vertex[] shape2dB = Renderer.PerspectiveView(b);
+            for (int i = 0; i < shape2dA.Length-1; i++)
+            {
+                for (int j = i; j < shape2dB.Length-1; j++)
+                {
+                    Vector2f p1 = shape2dA[i].Position;
+                    Vector2f p2 = shape2dA[i+1].Position;
+                    Vector2f p3 = shape2dB[j].Position;
+                    Vector2f p4 = shape2dB[j+1].Position;
+                    float ilv1 = (p1 - p3).Cross(p4 - p3);
+                    float ilv2 = (p2 - p3).Cross(p4 - p3);
+                    float ilv3 = (p3 - p1).Cross(p2 - p1);
+                    float ilv4 = (p4 - p1).Cross(p2 - p1);
+                    if (ilv1 * ilv2 < 0 && ilv3 * ilv4 < 0) return true;
+                    if (ilv1 == 0 && CzyNaOdcinku(p3, p4, p1)) return true;
+                    if (ilv2 == 0 && CzyNaOdcinku(p3, p4, p2)) return true;
+                    if (ilv3 == 0 && CzyNaOdcinku(p1, p2, p3)) return true;
+                    if (ilv4 == 0 && CzyNaOdcinku(p1, p2, p4)) return true;
+                }
+            }
+            return false;
+        }
+        private static bool CzyNaOdcinku(Vector2f p1, Vector2f p2, Vector2f p3)
+        {
+            float minx = Math.Min(p1.X, p2.X), maxx = Math.Max(p1.X, p2.X);
+            float miny = Math.Min(p1.Y, p2.Y), maxy = Math.Max(p1.Y, p2.Y);
+            if (minx <= p3.X && p3.X <= maxx && miny <= p3.Y && p3.Y <= maxy) return true;
+            return false;
+        }
+        private static void PreSortShapes(List<List<Vertex3D>> shapes)
+        {
             shapes.Sort((a, b) =>
             {
-            //float centerZA = 0;
-            //foreach (var itemA in a) centerZA += itemA.Position.Z;
-            //centerZA /= a.Count;
-            //float centerZB = 0;
-            //foreach (var itemB in b) centerZB += itemB.Position.Z;
-            //centerZB /= b.Count;
+                //float centerZA = 0;
+                //foreach (var itemA in a) centerZA += itemA.Position.Z;
+                //centerZA /= a.Count;
+                //float centerZB = 0;
+                //foreach (var itemB in b) centerZB += itemB.Position.Z;
+                //centerZB /= b.Count;
 
-            //if (centerZA >= centerZB) return -1;
-            //return 1;
+                //if (centerZA >= centerZB) return -1;
+                //return 1;
                 float maxZA = float.MinValue;
                 foreach (var itemA in a) maxZA = Math.Max(maxZA, (float)Math.Sqrt(itemA.Position.X * itemA.Position.X + itemA.Position.Y * itemA.Position.Y + (itemA.Position.Z + Camera.Instance.Sdistance) * (itemA.Position.Z + Camera.Instance.Sdistance)));
                 float maxZB = float.MinValue;
@@ -76,93 +192,38 @@ namespace GK.DrawingView
                 if (maxZA >= maxZB) return -1;
                 return 1;
             });
+        }
+        private static void SortShapes(List<List<Vertex3D>> shapes)
+        {
             //sortowanie parami z 5 testami
             shapes.Sort((a, b) =>
             {
                 //TEST1 - jeżeli przedziały [xmin;xmax] są rozłączne to pozytywny
-                float minAX = float.MaxValue, maxAX = float.MinValue, minBX = float.MaxValue, maxBX = float.MinValue;
-                foreach (var vertA in a)
-                {
-                    minAX = Math.Min(minAX, vertA.Position.X);
-                    maxAX = Math.Max(maxAX, vertA.Position.X);
-                }
-                foreach (var vertB in b)
-                {
-                    minBX = Math.Min(minBX, vertB.Position.X);
-                    maxBX = Math.Max(maxBX, vertB.Position.X);
-                }
-                List<float> f = new List<float>() { minAX, maxAX, minBX, maxBX };
-                f = f.OrderBy(i => i).ToList();
-                if(f[0] == minAX && f[1] == maxAX) return -1;
-                if(f[0] == minBX && f[1] == maxBX) return -1;
-
+                if (Test1(a, b)) return 1;
                 //TEST2 - jeżeli przedziały [ymin;ymax] są rozłączne to pozytywny
-                float minAY = float.MaxValue, maxAY = float.MinValue, minBY = float.MaxValue, maxBY = float.MinValue;
-                foreach (var vertA in a)
-                {
-                    minAY = Math.Min(minAY, vertA.Position.Y);
-                    maxAY = Math.Max(maxAY, vertA.Position.Y);
-                }
-                foreach (var vertB in b)
-                {
-                    minBY = Math.Min(minAY, vertB.Position.Y);
-                    maxBY = Math.Max(maxAY, vertB.Position.Y);
-                }
-                f = new List<float>() { minAX, maxAY, minBY, maxBY };
-                f = f.OrderBy(i => i).ToList();
-                if (f[0] == minAY && f[1] == maxAY) return -1;
-                if (f[0] == minBY && f[1] == maxBY) return -1;
-
+                if (Test2(a, b)) return 1;
                 //TEST3
-                //wyzanczenie rowanania plaszczyzny
-                Vector3f v1 = a[1].Position - a[0].Position;
-                Vector3f v2 = a[1].Position - a[2].Position;
-                //wektor ortogonalny
-                Vector3f d = new Vector3f(v1.Y * v2.Z - v1.Z * v2.Y, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.Z);
-                float A = d.X;
-                float B = d.Y;
-                float C = d.Z;
-                float D = -d.X * a[0].Position.X - d.Y * a[0].Position.Y - d.Z * a[0].Position.Z;
-                for (int i = 0; i < b.Count; i++)
-                {
-                    Vector3f vert = b[i].Position;
-                    if (A * vert.X + B * vert.Y + C * vert.Z + D >= 0) break;
-                    if (i == b.Count - 1) return -1;
-                }
-
+                if (Test3(a, b)) return 1;
                 //TEST4
-                //wyzanczenie rowanania plaszczyzny
-                v1 = b[1].Position - b[0].Position;
-                v2 = b[1].Position - b[2].Position;
-                //wektor ortogonalny
-                d = new Vector3f(v1.Y * v2.Z - v1.Z * v2.Y, v1.Z * v2.X - v1.X * v2.Z, v1.X * v2.Y - v1.Y * v2.Z);
-                A = d.X;
-                B = d.Y;
-                C = d.Z;
-                D = -d.X * b[0].Position.X - d.Y * b[0].Position.Y - d.Z * b[0].Position.Z;
-                for (int i = 0; i < a.Count; i++)
-                {
-                    Vector3f vert = a[i].Position;
-                    if (A * vert.X + B * vert.Y + C * vert.Z + D >= 0) break;
-                    if (i == a.Count - 1) return -1;
-                }
-
+                if (Test4(a, b)) return 1;
                 //TEST5
-
-
+                if (Test5(a, b)) return 1;
                 //wynik negatywny - zamien
-                return 1;
+                return -1;
             });
-
-
-
+        }
+        public static void PerformDrawing(List<List<Vertex3D>> shapes, RenderTarget target, RenderStates states)
+        {
+            //sortowanie wstepne (najwieksze center Z jako pierwsze)
+            PreSortShapes(shapes);
+            SortShapes(shapes);
+            
             //rzutowanie na 2d i rysowanie na target
             foreach (var shape in shapes)
             {
-                target.Draw(PerspectiveView(shape), PrimitiveType.Triangles, states);
+                target.Draw(Renderer.PerspectiveView(shape), PrimitiveType.Triangles, states);
                 // TODO: setpixel wypelnianie trojkata (jak punkt jest przed kamera czyli z<0 to nie malowac[zalatwi to przycinanie])
             }
-
         }
     }
 }
