@@ -89,6 +89,7 @@
     <Compile Include="Transforming\Transform3D.cs" />
     <Compile Include="Transforming\Transformable3D.cs" />
     <Compile Include="Drawables\Triangle.cs" />
+    <Compile Include="ZBuforAlgorithm.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

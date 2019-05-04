@@ -61,9 +61,10 @@ namespace GK.DrawingView
             }
 
             //draw
-            PaintersAlgorithm.PerformDrawing(shapes, target, states);
+            //PaintersAlgorithm.PerformDrawing(shapes, target, states);
             //lagi
             //Z_BuforAlgorithm.PerformDrawing(shapes, target, states);
+            ZBuforAlgorithm.PerformDrawing(shapes, target, states);
 
         }
     }
@@ -291,7 +292,7 @@ namespace GK.DrawingView
         {
             return val >= min && val <= max;
         }
-        public static void PerformDrawing(List<List<Vertex3D>> shapes, RenderTarget target, RenderStates states)
+        public static void PerformDrawingOLD(List<List<Vertex3D>> shapes, RenderTarget target, RenderStates states)
         {
             Vertex[] v = new Vertex[] { new Vertex() };
             for (int x = -(int)Camera.Instance.Width / 2; x < Camera.Instance.Width/2; x++)
@@ -340,6 +341,85 @@ namespace GK.DrawingView
                     //target.Draw(v, PrimitiveType.Points, states);
                 }
             }
+        }
+    }
+
+    public static class ZBuforAlgorithm
+    {
+        private static bool SprawdzZakres(double val, double min, double max)
+        {
+            return val >= min && val <= max;
+        }
+        public static void PerformDrawing(List<List<Vertex3D>> shapes, RenderTarget target, RenderStates states)
+        {
+            Color[,] cBufor = new Color[(int)Camera.Instance.Width, (int)Camera.Instance.Height];
+            float[,] zBufor = new float[(int)Camera.Instance.Width, (int)Camera.Instance.Height];
+            //fill zBufor with max val
+            for (int i = 0; i < zBufor.GetLength(0); i++)
+                for (int j = 0; j < zBufor.GetLength(1); j++)
+                    zBufor[i, j] = float.MaxValue;
+
+            //draw every shape
+            foreach (var verts in shapes)
+            {
+                var shape2D = Renderer.PerspectiveView(verts, out var zs);
+                //find bounds of shape (min max xy)
+                float minX, minY, maxX, maxY;
+                minX = minY = float.MaxValue; maxX = maxY = float.MinValue;
+                foreach (var vert in shape2D)
+                {
+                    minX = Math.Min(minX, vert.Position.X);
+                    minY = Math.Min(minY, vert.Position.Y);
+                    maxX = Math.Max(maxX, vert.Position.X);
+                    maxY = Math.Max(maxY, vert.Position.Y);
+                }
+                //bound minsmaxs to camera view rect
+                minX = Math.Max(minX, -Camera.Instance.Width / 2f);
+                minY = Math.Max(minY, -Camera.Instance.Height / 2f);
+                maxX = Math.Min(maxX, Camera.Instance.Width / 2f);
+                maxY = Math.Min(maxY, Camera.Instance.Height / 2f);
+                for (int i = (int)Math.Floor(minX); i < maxX; i++)
+                    for (int j = (int)Math.Floor(minY); j < maxY; j++)
+                    {
+                        //obliczyc czy pkt i j jest w srodku trojkata
+                        float x1 = shape2D[0].Position.X, y1 = shape2D[0].Position.Y;
+                        float x2 = shape2D[1].Position.X, y2 = shape2D[1].Position.Y;
+                        float x3 = shape2D[2].Position.X, y3 = shape2D[2].Position.Y;
+
+                        float x = i, y = j;
+
+                        float AB = (y - y1) * (x2 - x1) - (y2 - y1) * (x - x1);
+                        float BC = (y - y2) * (x3 - x2) - (y3 - y2) * (x - x2);
+                        float CA = (y - y3) * (x1 - x3) - (y1 - y3) * (x - x3);
+                        if (((AB != 0) && (CA != 0) && (BC != 0)) && ((AB < 0) || (CA < 0) || (BC < 0))) continue;
+                        //jak tak to obliczyc 'z'
+                        float w1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+                        float w2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / ((y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3));
+                        float w3 = 1 - w1 - w2;
+                        float z = w1 * 1/zs[0] + w2 * 1/zs[1] + w3 * 1/zs[2];
+                        Color c = new Color((byte)(w1 * 255), (byte)(w2 * 255), (byte)(w3 * 255));
+                        //porownac 'z' z tym co w buforze
+
+                        //jak mniejsze to zamien
+                        //i tez color
+                        float zCurrent = zBufor[i + (int)Camera.Instance.Width / 2, j + (int)Camera.Instance.Height / 2];
+                        if (zCurrent > z && z > 0)
+                        {
+                            zBufor[i + (int)Camera.Instance.Width / 2, j + (int)Camera.Instance.Height / 2] = z;
+                            cBufor[i + (int)Camera.Instance.Width / 2, j + (int)Camera.Instance.Height / 2] = shape2D[0].Color;
+                        }
+
+                    }
+            }
+
+            
+            Image image = new Image(cBufor);
+            Texture t = new Texture(image);
+            Sprite s = new Sprite(t) { Position = new Vector2f(-Camera.Instance.Width / 2, -Camera.Instance.Height / 2) };
+            target.Draw(s, states);
+            image.Dispose();
+            t.Dispose();
+            s.Dispose();
         }
     }
 }
