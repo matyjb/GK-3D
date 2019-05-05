@@ -43,7 +43,7 @@ namespace GK.Math3D
             Vector3Df v0 = l * r[0].Position;
             Vector3Df v1 = l * r[1].Position;
             Vector3Df v2 = l * r[2].Position;
-            return new Triangle3Df(new Vertex3Df(v0, r[0].Color), new Vertex3Df(v1, r[1].Color), new Vertex3Df(v2, r[0].Color));
+            return new Triangle3Df(new Vertex3Df(v0, r[0].Color), new Vertex3Df(v1, r[1].Color), new Vertex3Df(v2, r[2].Color));
         }
         public Transform3D Translate(Vector3Df v)
         {

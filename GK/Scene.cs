@@ -11,7 +11,7 @@ namespace GK
         public Camera Camera { get; } = new Camera();
         public List<IDrawable3D> Drawables = new List<IDrawable3D>()
         {
-            new Triangle(new Vector3Df(0,0,1),new Vector3Df(1,0,1),new Vector3Df(0,2,1), Color.Blue),
+            new Triangle(new Vector3Df(0,0,0),new Vector3Df(1,0,0),new Vector3Df(0,2,0), Color.Blue){Position=new Vector3Df(0,0,1) },
         };
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -66,7 +66,6 @@ namespace GK
                     (Vertex)tri.v2,
                 };
                 target.Draw(verticesArray, PrimitiveType.Triangles, states);
-
             }
         }
 
