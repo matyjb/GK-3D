@@ -4,10 +4,10 @@ namespace GK.Math3D
 {
     public abstract class Transformable3D
     {
-        private Vector3Df position;
-        private Vector3Df rotation;
+        private Vector3Df position = new Vector3Df();
+        private Vector3Df rotation = new Vector3Df();
         private Vector3Df scale = new Vector3Df(1, 1, 1);
-        private Vector3Df origin;
+        private Vector3Df origin = new Vector3Df();
         private Transform3D parentTransform = Transform3D.Identity;
         public Vector3Df Position { get => position; set { position = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Vector3Df Rotation { get => rotation; set { rotation = new Vector3Df(value.X % (2 * (float)Math.PI), value.Y % (2 * (float)Math.PI), value.Z % (2 * (float)Math.PI)); transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
