@@ -59,7 +59,6 @@ namespace GK
             //})
             foreach (var tri in trisProjected)
             {
-            System.Console.WriteLine(tri.v0.Position.Z);
                 Vertex[] verticesArray = new Vertex[3]
                 {
                     (Vertex)tri.v0,

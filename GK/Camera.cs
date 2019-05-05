@@ -11,10 +11,6 @@ namespace GK
         public float fFar { get; set; } = 1000f;
         public float FovDeg { get; set; } = 90;
 
-        public Camera()
-        {
-            Origin = new Vector3Df(0, 0, 1);
-        }
         public Transform3D ProjectionMatrix
         {
             get

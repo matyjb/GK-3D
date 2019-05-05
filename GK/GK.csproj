@@ -76,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Camera.cs" />
+    <Compile Include="Drawables\AxisIndicator.cs" />
     <Compile Include="Drawables\Triangle.cs" />
     <Compile Include="Interfaces\IDrawable3D.cs" />
     <Compile Include="Scene.cs" />

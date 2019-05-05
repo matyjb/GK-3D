@@ -1,4 +1,5 @@
-﻿using GK.Math3D;
+﻿using GK.Drawables;
+using GK.Math3D;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -21,6 +22,7 @@ namespace GK
         static void Main(string[] args)
         {
             sceneCamera = scene.Camera;
+            AxisIndicator axisind = new AxisIndicator(sceneCamera);
             Clock deltaClock = new Clock();
             deltaTime = deltaClock.Restart();
             window.SetView(windowView);
@@ -41,6 +43,7 @@ namespace GK
                 Keys();
                 window.Clear();
                 window.Draw(scene);
+                window.Draw(axisind);
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }
