@@ -21,13 +21,9 @@ namespace GK.Drawables
         }
         public List<Triangle3Df> GetTriangle3Dfs()
         {
-            //Vertex3Df vert0 = new Vertex3Df(Transform * v0, Color);
-            //Vertex3Df vert1 = new Vertex3Df(Transform * v1, Color);
-            //Vertex3Df vert2 = new Vertex3Df(Transform * v2, Color);
-            //for testing
-            Vertex3Df vert0 = new Vertex3Df(Transform * v0, Color.Red);
-            Vertex3Df vert1 = new Vertex3Df(Transform * v1, Color.Green);
-            Vertex3Df vert2 = new Vertex3Df(Transform * v2, Color.Blue);
+            Vertex3Df vert0 = new Vertex3Df(Transform * v0, Color);
+            Vertex3Df vert1 = new Vertex3Df(Transform * v1, Color);
+            Vertex3Df vert2 = new Vertex3Df(Transform * v2, Color);
             return new List<Triangle3Df>()
             {
                 new Triangle3Df(vert0,vert1,vert2),

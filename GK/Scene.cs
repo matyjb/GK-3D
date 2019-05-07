@@ -14,6 +14,7 @@ namespace GK
         public Frame RenderFrame { get; set; } = new Frame(800, 600);
         public List<IDrawable3D> Drawables = new List<IDrawable3D>()
         {
+            new Triangle(new Vector3Df(-1,-1,1),new Vector3Df(3,1,2),new Vector3Df(2,3,1), Color.Green){Position=new Vector3Df(0,0,1) },
             new Triangle(new Vector3Df(0,0,0),new Vector3Df(1,0,0),new Vector3Df(0,2,0), Color.Blue){Position=new Vector3Df(0,0,1) },
         };
 
@@ -76,7 +77,7 @@ namespace GK
                     if (newZ > 1 && newZ < minZ)
                     {
                         minZ = newZ;
-                        RenderFrame.SetPixel(pixX, pixY, Color.Red);
+                        RenderFrame.SetPixel(pixX, pixY, t.v0.Color);
                     }
                 }
             });

@@ -72,10 +72,9 @@ namespace GK.Math3D
         }
         public float GetZ(float x, float y)
         {
-            Vector3Df v = new Vector3Df(x, y, 0);
             //check if inside 
             bool inside = PointIsInside(x, y, out float w1, out float w2);
-            if (!inside) return float.MaxValue;
+            if (!inside) return float.MinValue;
 
             //is inside
             float w0 = 1 - w1 - w2;
