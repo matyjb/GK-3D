@@ -60,7 +60,7 @@ namespace GK.Math3D
         {
             float x = Y * right.Z - Z * right.Y;
             float y = Z * right.X - X * right.Z;
-            float z = X * right.Y - Y * right.Z;
+            float z = X * right.Y - Y * right.X;
             return new Vector3Df(x, y, z);
         }
         public float Dot(Vector3Df right)

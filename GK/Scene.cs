@@ -2,13 +2,16 @@
 using GK.Interfaces;
 using GK.Math3D;
 using SFML.Graphics;
+using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace GK
 {
     public class Scene : Drawable
     {
         public Camera Camera { get; } = new Camera();
+        public Frame RenderFrame { get; set; } = new Frame(800, 600);
         public List<IDrawable3D> Drawables = new List<IDrawable3D>()
         {
             new Triangle(new Vector3Df(0,0,0),new Vector3Df(1,0,0),new Vector3Df(0,2,0), Color.Blue){Position=new Vector3Df(0,0,1) },
@@ -31,11 +34,13 @@ namespace GK
              //
              6. target.draw
              */
+            //collecting triangles
             List<Triangle3Df> tris = new List<Triangle3Df>();
             foreach (var drawable in Drawables)
             {
                 tris.AddRange(drawable.GetTriangle3Dfs());
             }
+            //projecting all to the screen
             List<Triangle3Df> trisProjected = new List<Triangle3Df>(tris);
             Transform3D proj = Camera.ProjectionMatrix * Camera.InverseTransform;
             for (int i = 0; i < tris.Count; i++)
@@ -53,20 +58,40 @@ namespace GK
                 }
                 trisProjected[i] = t;
             }
-            //trisProjected.Sort((a, b) =>
-            //{
 
-            //})
-            foreach (var tri in trisProjected)
+            //drawing
+            Parallel.For(0, RenderFrame.Width, pixX =>
             {
-                Vertex[] verticesArray = new Vertex[3]
+                Parallel.For(0, RenderFrame.Height, pixY =>
                 {
-                    (Vertex)tri.v0,
-                    (Vertex)tri.v1,
-                    (Vertex)tri.v2,
-                };
-                target.Draw(verticesArray, PrimitiveType.Triangles, states);
-            }
+                    float spaceX = pixX - RenderFrame.Width / 2;
+                    float spaceY = pixY - RenderFrame.Height / 2;
+                    float minZ = float.MaxValue;
+                    Parallel.For(0, trisProjected.Count, i =>
+                    {
+                        float newZ = trisProjected[i].GetZ(spaceX, spaceY);
+                        if (newZ > 0 && newZ < minZ)
+                        {
+                            minZ = newZ;
+                            RenderFrame.SetPixel(pixX, pixY, Color.Red);
+                        }
+                    });
+                });
+            });
+
+            //foreach (var tri in trisProjected)
+            //{
+            //    Vertex[] verticesArray = new Vertex[3]
+            //    {
+            //        (Vertex)tri.v0,
+            //        (Vertex)tri.v1,
+            //        (Vertex)tri.v2,
+            //    };
+            //    target.Draw(verticesArray, PrimitiveType.Triangles, states);
+            //}
+
+
+            target.Draw(RenderFrame, states);
         }
 
     }

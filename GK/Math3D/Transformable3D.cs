@@ -87,7 +87,6 @@ namespace GK.Math3D
                     inverseTransform = ParentTransform * new Transform3D(ans11, ans12, ans13, ans14, ans21, ans22, ans23, ans24, ans31, ans32, ans33, ans34, ans41, ans42, ans43, ans44);
                     inverseTransformUpdateNeeded = false;
                 }
-                //ParentTransform* Transform3D.Identity.Translate(-Position).Scale(1/Scale).Rotate(-Rotation).Translate(origin);
                 return inverseTransform;
             }
         }
