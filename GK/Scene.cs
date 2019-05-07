@@ -60,23 +60,25 @@ namespace GK
             }
 
             //drawing
-            Parallel.For(0, RenderFrame.Width, pixX =>
+            int halfwidth = RenderFrame.Width / 2;
+            int halfhight = RenderFrame.Height / 2;
+
+            Parallel.For(0, RenderFrame.Lenght, i =>
             {
-                Parallel.For(0, RenderFrame.Height, pixY =>
+                int pixX = i%RenderFrame.Width;
+                int pixY = i/RenderFrame.Width;
+                float spaceX = pixX - halfwidth;
+                float spaceY = pixY - halfhight;
+                float minZ = float.MaxValue;
+                foreach (var t in trisProjected)
                 {
-                    float spaceX = pixX - RenderFrame.Width / 2;
-                    float spaceY = pixY - RenderFrame.Height / 2;
-                    float minZ = float.MaxValue;
-                    Parallel.For(0, trisProjected.Count, i =>
+                    float newZ = t.GetZ(spaceX, spaceY);
+                    if (newZ > 1 && newZ < minZ)
                     {
-                        float newZ = trisProjected[i].GetZ(spaceX, spaceY);
-                        if (newZ > 0 && newZ < minZ)
-                        {
-                            minZ = newZ;
-                            RenderFrame.SetPixel(pixX, pixY, Color.Red);
-                        }
-                    });
-                });
+                        minZ = newZ;
+                        RenderFrame.SetPixel(pixX, pixY, Color.Red);
+                    }
+                }
             });
 
             //foreach (var tri in trisProjected)

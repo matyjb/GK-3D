@@ -41,11 +41,11 @@ namespace GK
 
             while(window.IsOpen)
             {
-                Console.WriteLine(1f/deltaTime.AsSeconds() + " fps");
+                //Console.WriteLine(1f/deltaTime.AsSeconds() + " fps");
                 window.DispatchEvents();
                 Keys();
                 window.Clear();
-                renderFrame.Clear();
+                scene.RenderFrame.Clear();
                 window.Draw(scene);
                 window.Draw(axisind);
                 window.Display();
@@ -70,7 +70,8 @@ namespace GK
         {
             windowView = new View(new FloatRect(-e.Width / 2, -e.Height / 2, e.Width, e.Height));
             window.SetView(windowView);
-            renderFrame = new Frame((int)e.Width, (int)e.Height);
+
+            scene.RenderFrame = new Frame((int)e.Width, (int)e.Height);
         }
 
         private static void Window_MouseButtonPressed(object sender, MouseButtonEventArgs e)

@@ -7,11 +7,14 @@ using System.Threading.Tasks;
 
 namespace GK
 {
-    public class Frame : Drawable
+    public class Frame : Drawable, IDisposable
     {
         private Color[,] Bitmap { get; set; }
         public int Width { get => Bitmap.GetLength(0); }
         public int Height { get => Bitmap.GetLength(1); }
+        public int Lenght { get => Bitmap.Length; }
+
+
 
         public Frame(int width, int height)
         {
@@ -19,10 +22,10 @@ namespace GK
         }
         public void Clear()
         {
-            Parallel.For(0, Bitmap.GetLength(0), row => {
-                Parallel.For(0, Bitmap.GetLength(1), col => {
-                    SetPixel(row, col, Color.Black);
-                });
+            Parallel.For(0, Bitmap.Length, i => {
+                int row = i % Width;
+                int col = i / Width;
+                SetPixel(row, col, Color.Black);
             });
         }
         public void SetPixel(int x, int y, Color color)
@@ -38,6 +41,11 @@ namespace GK
             sprite.Dispose();
             texture.Dispose();
             image.Dispose();
+        }
+
+        public void Dispose()
+        {
+            Bitmap = null;
         }
     }
 }
