@@ -14,8 +14,8 @@ namespace GK
         public Frame RenderFrame { get; set; } = new Frame(800, 600);
         public List<IDrawable3D> Drawables = new List<IDrawable3D>()
         {
-            new Triangle(new Vector3Df(-1,-1,1),new Vector3Df(3,1,2),new Vector3Df(2,3,1), Color.Green){Position=new Vector3Df(0,0,1) },
             new Triangle(new Vector3Df(0,0,0),new Vector3Df(1,0,0),new Vector3Df(0,2,0), Color.Blue){Position=new Vector3Df(0,0,1) },
+            new Triangle(new Vector3Df(-1,-1,1),new Vector3Df(3,1,2),new Vector3Df(2,3,1), Color.Green){Position=new Vector3Df(0,0,1) },
         };
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -63,20 +63,21 @@ namespace GK
             //drawing
             int halfwidth = RenderFrame.Width / 2;
             int halfhight = RenderFrame.Height / 2;
-
+            float z = trisProjected[1].GetZ(0, 0);
+            Console.WriteLine(z);
             Parallel.For(0, RenderFrame.Lenght, i =>
             {
                 int pixX = i%RenderFrame.Width;
                 int pixY = i/RenderFrame.Width;
                 float spaceX = pixX - halfwidth;
                 float spaceY = pixY - halfhight;
-                float minZ = float.MaxValue;
+                float maxZ = float.MinValue;
                 foreach (var t in trisProjected)
                 {
                     float newZ = t.GetZ(spaceX, spaceY);
-                    if (newZ > 1 && newZ < minZ)
+                    if (/*newZ > 1.25f &&*/ newZ > maxZ)
                     {
-                        minZ = newZ;
+                        maxZ = newZ;
                         RenderFrame.SetPixel(pixX, pixY, t.v0.Color);
                     }
                 }

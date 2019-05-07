@@ -24,6 +24,7 @@ namespace GK
         {
             renderFrame = scene.RenderFrame;
             sceneCamera = scene.Camera;
+            sceneCamera.Position += new Vector3Df(0, 0, 0);
             AxisIndicator axisind = new AxisIndicator(sceneCamera);
             Clock deltaClock = new Clock();
             deltaTime = deltaClock.Restart();
