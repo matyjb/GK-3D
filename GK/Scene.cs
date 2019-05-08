@@ -2,6 +2,7 @@
 using GK.Interfaces;
 using GK.Math3D;
 using SFML.Graphics;
+using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -60,26 +61,59 @@ namespace GK
             }
 
             //drawing - z buffer
-            int halfwidth = RenderFrame.Width / 2;
-            int halfhight = RenderFrame.Height / 2;
-            Parallel.For(0, RenderFrame.Lenght, i =>
-            {
-                int pixX = i%RenderFrame.Width;
-                int pixY = i/RenderFrame.Width;
-                float spaceX = pixX - halfwidth;
-                float spaceY = pixY - halfhight;
-                float maxZ = float.MinValue;
-                foreach (var t in trisProjected)
-                {
-                    float newZ = t.GetZ(spaceX, spaceY);
-                    if (newZ > 1/Camera.fNear && newZ > maxZ)
-                    {
-                        maxZ = newZ;
-                        RenderFrame.SetPixel(pixX, pixY, t.v0.Color);
-                    }
-                }
-            });
+            Console.WriteLine(trisProjected[0].GetZ(0, 0));
+            //int halfwidth = RenderFrame.Width / 2;
+            //int halfhight = RenderFrame.Height / 2;
+            //Parallel.For(0, RenderFrame.Lenght, i =>
+            //{
+            //    int pixX = i%RenderFrame.Width;
+            //    int pixY = i/RenderFrame.Width;
+            //    float spaceX = pixX - halfwidth;
+            //    float spaceY = pixY - halfhight;
+            //    float maxZ = float.MinValue;
+            //    foreach (var t in trisProjected)
+            //    {
 
+            //        float newZ = t.GetZ(spaceX, spaceY);
+
+            //        if (newZ > 1/Camera.fNear && newZ > maxZ)
+            //        {
+            //            maxZ = newZ;
+            //            RenderFrame.SetPixel(pixX, pixY, t.v0.Color);
+            //        }
+            //    }
+            //});
+
+            RenderTexture zBufferTexture = new RenderTexture((uint)Camera.Width, (uint)Camera.Height);
+            Vector2f cameracenter = new Vector2f(Camera.Width / 2, Camera.Height / 2);
+            foreach (var t in trisProjected)
+            {
+                //TODO: funkcja mapująca
+                byte v0ZColor = (byte)Math.Abs(t.v0.Position.Z*2.5f);
+                byte v1ZColor = (byte)Math.Abs(t.v1.Position.Z*2.5f);
+                byte v2ZColor = (byte)Math.Abs(t.v2.Position.Z*2.5f);
+                var v0 = (Vector2f)t.v0.Position;
+                var v1 = (Vector2f)t.v1.Position;
+                var v2 = (Vector2f)t.v2.Position;
+                v0.Y *= -1;
+                v1.Y *= -1;
+                v2.Y *= -1;
+                v0 += cameracenter;
+                v1 += cameracenter;
+                v2 += cameracenter;
+                Vertex[] v = new Vertex[]
+                {
+                    new Vertex(v0,new Color(v0ZColor,v0ZColor,v0ZColor)),
+                    new Vertex(v1,new Color(v1ZColor,v1ZColor,v1ZColor)),
+                    new Vertex(v2,new Color(v2ZColor,v2ZColor,v2ZColor)),
+                };
+                //TODO: shader
+                zBufferTexture.Draw(v, PrimitiveType.Triangles);
+
+            }
+            Sprite sprite = new Sprite(zBufferTexture.Texture) { Position = -cameracenter };
+            target.Draw(sprite);
+            sprite.Dispose();
             //foreach (var tri in trisProjected)
             //{
             //    Vertex[] verticesArray = new Vertex[3]
@@ -92,7 +126,7 @@ namespace GK
             //}
 
 
-            target.Draw(RenderFrame, states);
+            //target.Draw(RenderFrame, states);
         }
 
     }
