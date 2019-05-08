@@ -23,8 +23,8 @@ namespace GK.Drawables
         }
         public List<Triangle3Df> GetTriangle3Dfs()
         {
-            Triangle t0 = new Triangle(v0, v1, v2, Color);
-            Triangle t1 = new Triangle(v0, v2, v3, Color);
+            Triangle t0 = new Triangle(v0, v1, v2, Color) { ParentTransform = Transform };
+            Triangle t1 = new Triangle(v0, v2, v3, Color) { ParentTransform = Transform };
             List<Triangle3Df> result = new List<Triangle3Df>();
             result.AddRange(t0.GetTriangle3Dfs());
             result.AddRange(t1.GetTriangle3Dfs());

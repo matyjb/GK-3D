@@ -15,7 +15,9 @@ namespace GK
         public List<IDrawable3D> Drawables = new List<IDrawable3D>()
         {
             new Triangle(new Vector3Df(0,0,0),new Vector3Df(1,0,0),new Vector3Df(0,2,0), Color.Blue){Position=new Vector3Df(0,0,1) },
-            new Triangle(new Vector3Df(-1,-1,1),new Vector3Df(3,1,2),new Vector3Df(2,3,1), Color.Green){Position=new Vector3Df(0,0,1) },
+            new Triangle(new Vector3Df(-1,-1,0),new Vector3Df(3,1,1),new Vector3Df(2,3,0), Color.Green){Position=new Vector3Df(0,0,2) },
+            new Quad(new Vector3Df(0,1,0),new Vector3Df(2,0.5f,0),new Vector3Df(3,0.7f,3),new Vector3Df(-1,1.5f,2.5f), Color.Red){Position=new Vector3Df(0,0,1) },
+            new Cuboid(new Vector3Df(3,4,2), Color.White){Position=new Vector3Df(0,0,-3) },
         };
 
         public void Draw(RenderTarget target, RenderStates states)
