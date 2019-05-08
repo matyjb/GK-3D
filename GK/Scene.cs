@@ -20,21 +20,6 @@ namespace GK
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            /*
-             1. uzyskać od wszystkich Drawables trojkaty tzn List<Triangle3Df>
-             2. wpakować wszsytkie do jednej listy
-             3. wszystkie trojkaty z listy pomnozyc o tak:
-                Camera.ProjectionMatrix*Camera.InverseTransform*Triangle
-                3a. unormowac po w
-             //(malarski (ale głupi))
-             4. posortować po Z
-             5. dla kazdego trojkata zrzutować Vertexy3D na Vertex i wstawić do Vertex[]
-             6. kazdy vector jeszcze trzeba pomnozyc przez [width, -Height]
-             //zbufor
-
-             //
-             6. target.draw
-             */
             //collecting triangles
             List<Triangle3Df> tris = new List<Triangle3Df>();
             foreach (var drawable in Drawables)
@@ -51,20 +36,30 @@ namespace GK
                 for (int j = 0; j < 3; j++)
                 {
                     var tv = t[j];
+                    var tmpW = tv.Position.W; //to save sign
                     tv.Position = tv.Position.NormalW1();
-                    tv.Position.X *= -0.5f * Camera.Width;
-                    tv.Position.Y *= 0.5f * Camera.Height;
-                    tv.Position.Z *= -1;
+                    //scale to screen dimensions
+                    tv.Position.X *= Camera.Width / 2;
+                    tv.Position.Y *= Camera.Height / 2;
+
+                    //if vector was in front of the camera flip axis
+                    if (tmpW < 0)
+                    {
+                        tv.Position.X *= -1;
+                        tv.Position.Y *= -1;
+                        tv.Position.Z *= -1;
+                    }
+                    //Y axis is pointing up in 3d space but down on 2d screen so flip Y-axis
+                    tv.Position.Y *= -1;
+
                     t[j] = tv;
                 }
                 trisProjected[i] = t;
             }
 
-            //drawing
+            //drawing - z buffer
             int halfwidth = RenderFrame.Width / 2;
             int halfhight = RenderFrame.Height / 2;
-            float z = trisProjected[1].GetZ(0, 0);
-            Console.WriteLine(z);
             Parallel.For(0, RenderFrame.Lenght, i =>
             {
                 int pixX = i%RenderFrame.Width;
@@ -75,7 +70,7 @@ namespace GK
                 foreach (var t in trisProjected)
                 {
                     float newZ = t.GetZ(spaceX, spaceY);
-                    if (/*newZ > 1.25f &&*/ newZ > maxZ)
+                    if (newZ > 1/Camera.fNear && newZ > maxZ)
                     {
                         maxZ = newZ;
                         RenderFrame.SetPixel(pixX, pixY, t.v0.Color);
