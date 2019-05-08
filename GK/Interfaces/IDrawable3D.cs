@@ -1,10 +1,10 @@
-﻿using GK.Structs;
+﻿using GK.Math3D;
 using System.Collections.Generic;
 
 namespace GK.Interfaces
 {
     public interface IDrawable3D
     {
-        List<List<Vertex3D>> GetShapes();
+        List<Triangle3Df> GetTriangle3Dfs();
     }
 }

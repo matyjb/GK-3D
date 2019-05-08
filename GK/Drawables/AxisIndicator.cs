@@ -1,23 +1,32 @@
-﻿using SFML.Graphics;
+﻿using GK.Math3D;
+using SFML.Graphics;
 using SFML.System;
-using GK.DrawingView;
-using GK.Transforming;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace GK.Drawables
 {
-    class AxisIndicator : Transformable3D, Drawable
+    public class AxisIndicator : Transformable3D, Drawable
     {
+        public Camera Camera { get; private set; }
+        public AxisIndicator(Camera camera)
+        {
+            Camera = camera;
+        }
         public void Draw(RenderTarget target, RenderStates states)
         {
-            Vector3f vX = new Vector3f(20, 0, 0);
-            Vector3f vY = new Vector3f(0, 20, 0);
-            Vector3f vZ = new Vector3f(0, 0, 20);
+            Vector3Df vX = new Vector3Df(20, 0, 0);
+            Vector3Df vY = new Vector3Df(0, 20, 0);
+            Vector3Df vZ = new Vector3Df(0, 0, 20);
 
-            Position = Camera.Instance.Position;
-            Transform3D t = Camera.Instance.InverseTransform * Transform;
-            vX = t.TransformPoint(vX);
-            vY = t.TransformPoint(vY);
-            vZ = t.TransformPoint(vZ);
+            Position = Camera.Position;
+            Transform3D t = Camera.InverseTransform * Transform;
+            vX = t * vX;
+            vY = t * vY;
+            vZ = t * vZ;
 
 
             //vertices
