@@ -12,7 +12,7 @@ namespace GK
     public class Scene : Drawable
     {
         public Camera Camera { get; } = new Camera();
-        public Frame RenderFrame { get; set; } = new Frame(800, 600);
+        public ZBufferFrame RenderFrame { get; set; }
         public List<IDrawable3D> Drawables = new List<IDrawable3D>()
         {
             new Triangle(new Vector3Df(0,0,0),new Vector3Df(1,0,0),new Vector3Df(0,2,0), Color.Blue){Position=new Vector3Df(0,0,1) },
@@ -20,6 +20,11 @@ namespace GK
             new Quad(new Vector3Df(0,1,0),new Vector3Df(2,0.5f,0),new Vector3Df(3,0.7f,3),new Vector3Df(-1,1.5f,2.5f), Color.Red){Position=new Vector3Df(0,0,1) },
             new Cuboid(new Vector3Df(3,1,2), Color.White){Position=new Vector3Df(0,-3,1) },
         };
+
+        public Scene()
+        {
+            RenderFrame = new ZBufferFrame(800, 600, Camera);
+        }
 
         public void Draw(RenderTarget target, RenderStates states)
         {
@@ -61,28 +66,13 @@ namespace GK
             }
 
             //drawing - z buffer
-            //Console.WriteLine(trisProjected[0].GetZ(0, 0));
-            int halfwidth = RenderFrame.Width / 2;
-            int halfhight = RenderFrame.Height / 2;
-            Parallel.For(0, RenderFrame.Lenght, i =>
+            //Console.WriteLine(trisProjected[0].GetZ(0,0));
+            foreach (var tri in trisProjected)
             {
-                int pixX = i % RenderFrame.Width;
-                int pixY = i / RenderFrame.Width;
-                float spaceX = pixX - halfwidth;
-                float spaceY = pixY - halfhight;
-                float maxZ = float.MinValue;
-                foreach (var t in trisProjected)
-                {
+                RenderFrame.DrawTriangle(tri);
+            }
 
-                    float newZ = t.GetZ(spaceX, spaceY);
-
-                    if (newZ > 1 / Camera.fNear && newZ > maxZ)
-                    {
-                        maxZ = newZ;
-                        RenderFrame.SetPixel(pixX, pixY, t.v0.Color);
-                    }
-                }
-            });
+            target.Draw(RenderFrame, states);
 
 
             //foreach (var tri in trisProjected)
@@ -95,9 +85,6 @@ namespace GK
             //    };
             //    target.Draw(verticesArray, PrimitiveType.Triangles, states);
             //}
-
-
-            target.Draw(RenderFrame, states);
         }
 
     }

@@ -15,7 +15,7 @@ namespace GK
         public static Camera sceneCamera;
         public static Scene scene = new Scene();
         public static Time deltaTime;
-        public static Frame renderFrame;
+        public static ZBufferFrame renderFrame;
 
         public static bool IsMouseCenterSnapped = false;
         public static float cameraStepsPerSec = 1;
@@ -26,6 +26,9 @@ namespace GK
             sceneCamera = scene.Camera;
             AxisIndicator axisind = new AxisIndicator(sceneCamera);
             Clock deltaClock = new Clock();
+            Font font = new Font("./Fonts/arial.ttf");
+            Text fpsAmount = new Text("fps: 0", font) { CharacterSize = 14, FillColor=Color.White,OutlineColor=Color.Black, Style=Text.Styles.Bold, Position=-(Vector2f)renderFrame.Size.Div(2) };
+
             deltaTime = deltaClock.Restart();
             window.SetView(windowView);
             window.SetFramerateLimit(90);
@@ -41,13 +44,14 @@ namespace GK
 
             while(window.IsOpen)
             {
-                //Console.WriteLine(1f/deltaTime.AsSeconds() + " fps");
+                fpsAmount.DisplayedString = string.Format("fps: {0:0.00}", 1f / deltaTime.AsSeconds());
                 window.DispatchEvents();
                 Keys();
                 window.Clear();
                 scene.RenderFrame.Clear();
                 window.Draw(scene);
                 window.Draw(axisind);
+                window.Draw(fpsAmount);
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }
@@ -71,7 +75,7 @@ namespace GK
             windowView = new View(new FloatRect(-e.Width / 2, -e.Height / 2, e.Width, e.Height));
             window.SetView(windowView);
 
-            scene.RenderFrame = new Frame((int)e.Width, (int)e.Height);
+            scene.RenderFrame = new ZBufferFrame((int)e.Width, (int)e.Height, sceneCamera);
         }
 
         private static void Window_MouseButtonPressed(object sender, MouseButtonEventArgs e)

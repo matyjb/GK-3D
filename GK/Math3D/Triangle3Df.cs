@@ -11,6 +11,7 @@ namespace GK.Math3D
         public Vertex3Df v1 { get; set; }
         public Vertex3Df v2 { get; set; }
 
+
         public Vertex3Df this[int index]
         {
             get
