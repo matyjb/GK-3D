@@ -27,7 +27,15 @@ namespace GK
             AxisIndicator axisind = new AxisIndicator(sceneCamera);
             Clock deltaClock = new Clock();
             Font font = new Font("./Fonts/arial.ttf");
-            Text fpsAmount = new Text("fps: 0", font) { CharacterSize = 14, FillColor=Color.White,OutlineColor=Color.Black, Style=Text.Styles.Bold, Position=-(Vector2f)renderFrame.Size.Div(2) };
+            Text fpsAmount = new Text("fps: 0", font)
+            {
+                CharacterSize = 14,
+                FillColor = Color.White,
+                OutlineColor = Color.Black,
+                OutlineThickness = 1,
+                Style = Text.Styles.Bold,
+                Position = -(Vector2f)renderFrame.Size.Div(2)
+            };
 
             deltaTime = deltaClock.Restart();
             window.SetView(windowView);

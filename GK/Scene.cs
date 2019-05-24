@@ -66,7 +66,7 @@ namespace GK
             }
 
             //drawing - z buffer
-            //Console.WriteLine(trisProjected[0].GetZ(0,0));
+            Console.WriteLine(trisProjected[0].GetZ(0,0));
             foreach (var tri in trisProjected)
             {
                 RenderFrame.DrawTriangle(tri);

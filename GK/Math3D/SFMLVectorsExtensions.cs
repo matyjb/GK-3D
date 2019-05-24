@@ -17,5 +17,9 @@ namespace GK.Math3D
         {
             return left.X * right.X + left.Y * right.Y;
         }
+        public static float Cross(this Vector2f left, Vector2f right)
+        {
+            return left.X * right.Y - left.Y * right.X;
+        }
     }
 }

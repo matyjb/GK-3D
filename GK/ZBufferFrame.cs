@@ -76,24 +76,17 @@ namespace GK
                     Vector2f point = new Vector2f(i, j);
                     Barycentric(point, v0, v1, v2, out var u, out var v, out var w);
                     //if any is negative = not in the triangle
-                    // TODO: u v w is nan when points of triangle have massive coordinates
-                    try
-                    {
-                        if (Math.Sign(u) < 0) continue;
-                        if (Math.Sign(v) < 0) continue;
-                        if (Math.Sign(w) < 0) continue;
-                    }
-                    catch
-                    {
-                        continue;
-                    }
+                    if (u + w + v > 1) continue;
+                    if (Math.Sign(u) < 0) continue;
+                    if (Math.Sign(v) < 0) continue;
+                    if (Math.Sign(w) < 0) continue;
                     //calc array indexes
                     int x = i + (int)b.X-1;
                     int y = j + (int)b.Y-1;
                     //if the point is in the triangle calculate Z
                     float z = u * triangle.v0.Position.Z + v * triangle.v1.Position.Z + w * triangle.v2.Position.Z;
                     //compare with value in ZBuffer
-                    if (ZBuffer[x, y] < z)
+                    if (ZBuffer[x, y] < z && z > 1/0.8f)
                     {
                         //if higher swap value and put color in Bitmap
                         ZBuffer[x, y] = z;
@@ -113,17 +106,20 @@ namespace GK
             float d11 = v1.Dot(v1);
             float d20 = v2.Dot(v0);
             float d21 = v2.Dot(v1);
-            double denom = (double)d00 * d11 - (double)d01 * d01;
-            if (denom == 0)
-            {
-                Vector2f t = p - a;
-                if (Math.Sqrt(t.Dot(t)) < 1) { u = 1; v = 0; w = 0; return; }
-                t = p - b;
-                if (Math.Sqrt(t.Dot(t)) < 1) { u = 0; v = 1; w = 0; return; }
-                u = 0; v = 0; w = 1; return;
-            }
-            v = (float)((d11 * d20 - d01 * d21) / denom);
-            w = (float)((d00 * d21 - d01 * d20) / denom);
+            float invDenom = 1/(d00 * d11 - d01 * d01);
+            if(float.IsInfinity(invDenom)) { u = 0; v = 0; w = 0; return; }
+            if(float.IsNaN(invDenom)) { u = 0; v = 0; w = 0; return; }
+            if (invDenom == 0) { u = 0; v = 0; w = 0; return; }
+            //if (denom == 0)
+            //{
+            //    Vector2f t = p - a;
+            //    if (Math.Sqrt(t.Dot(t)) < 1) { u = 1; v = 0; w = 0; return; }
+            //    t = p - b;
+            //    if (Math.Sqrt(t.Dot(t)) < 1) { u = 0; v = 1; w = 0; return; }
+            //    u = 0; v = 0; w = 1; return;
+            //}
+            v = (float)((d11 * d20 - d01 * d21) * invDenom);
+            w = (float)((d00 * d21 - d01 * d20) * invDenom);
             u = 1.0f - v - w;
         }
         public void Draw(RenderTarget target, RenderStates states)
