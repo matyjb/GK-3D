@@ -75,22 +75,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Camera.cs" />
-    <Compile Include="Drawables\AxisIndicator.cs" />
-    <Compile Include="Drawables\Cuboid.cs" />
-    <Compile Include="Drawables\Quad.cs" />
-    <Compile Include="Drawables\Triangle.cs" />
-    <Compile Include="Interfaces\IDrawable3D.cs" />
-    <Compile Include="Math3D\SFMLVectorsExtensions.cs" />
-    <Compile Include="Scene.cs" />
-    <Compile Include="Math3D\Transform3D.cs" />
-    <Compile Include="Math3D\Transformable3D.cs" />
-    <Compile Include="Math3D\Triangle3Df.cs" />
-    <Compile Include="Math3D\Vector3Df.cs" />
-    <Compile Include="Math3D\Vertex3Df.cs" />
+    <Compile Include="Math3D\Mesh.cs" />
+    <Compile Include="Math3D\Transform.cs" />
+    <Compile Include="Math3D\Triangle.cs" />
+    <Compile Include="Math3D\Vec3.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ZBufferFrame.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -98,6 +88,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Drawables\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
