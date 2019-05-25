@@ -257,9 +257,12 @@ namespace GK
             }
             else if (primitiveType == PrimitiveType.LineStrip)
             {
-                DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
-                DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
-                DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
+                //DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
+                //DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
+                //DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
+                DrawLine(triangle[0], Color.Green, triangle[1], Color.Red);
+                DrawLine(triangle[1], Color.Red, triangle[2], Color.Blue);
+                DrawLine(triangle[2], Color.Blue, triangle[0], Color.Green);
             }
         }
 

@@ -47,39 +47,76 @@ namespace GK
             window.MouseWheelScrolled += Window_MouseWheelScrolled;
 
             ///////////
-            Vec3 v0 = new Vec3(0, 0, 0);
-            Vec3 v1 = new Vec3(0, 0, 1);
-            Vec3 v2 = new Vec3(0, 1, 0);
-            Vec3 v3 = new Vec3(0, 1, 1);
-            Vec3 v4 = new Vec3(1, 0, 0);
-            Vec3 v5 = new Vec3(1, 0, 1);
-            Vec3 v6 = new Vec3(1, 1, 0);
-            Vec3 v7 = new Vec3(1, 1, 1);
+            
+            Vec3 v00 = new Vec3(0, 0, 0);
+            Vec3 v01 = new Vec3(0, 0, 1);
+            Vec3 v02 = new Vec3(0, 1, 0);
+            Vec3 v03 = new Vec3(0, 1, 1);
+            Vec3 v04 = new Vec3(1, 0, 0);
+            Vec3 v05 = new Vec3(1, 0, 1);
+            Vec3 v06 = new Vec3(1, 1, 0);
+            Vec3 v07 = new Vec3(1, 1, 1);
+
+            Vec3 secCubeMoved = new Vec3(2, 2, 3);
+
+            Vec3 v10 = v00 + secCubeMoved;
+            Vec3 v11 = v01 + secCubeMoved;
+            Vec3 v12 = v02 + secCubeMoved;
+            Vec3 v13 = v03 + secCubeMoved;
+            Vec3 v14 = v04 + secCubeMoved;
+            Vec3 v15 = v05 + secCubeMoved;
+            Vec3 v16 = v06 + secCubeMoved;
+            Vec3 v17 = v07 + secCubeMoved;
             Mesh cube = new Mesh()
             {
                 // SOUTH
-                new Triangle( v0, v2, v6, Color.Green ),
-                new Triangle( v0, v6, v4, Color.Green ),
+                new Triangle( v00, v02, v06, Color.Green ),
+                new Triangle( v00, v06, v04, Color.Green ),
 
 		        // EAST                                                      
-		        new Triangle( v4, v6, v7, Color.Red ),
-                new Triangle( v4, v7, v5, Color.Red ),
+		        new Triangle( v04, v06, v07, Color.Red ),
+                new Triangle( v04, v07, v05, Color.Red ),
 
 		        // NORTH                                                     
-		        new Triangle( v5, v7, v3, Color.Green ),
-                new Triangle( v5, v3, v1, Color.Green ),
+		        new Triangle( v05, v07, v03, Color.Green ),
+                new Triangle( v05, v03, v01, Color.Green ),
 
 		        // WEST                                                      
-		        new Triangle( v1, v3, v2, Color.Red ),
-                new Triangle( v1, v2, v0, Color.Red ),
+		        new Triangle( v01, v03, v02, Color.Red ),
+                new Triangle( v01, v02, v00, Color.Red ),
 
 		        // TOP                                                       
-		        new Triangle( v2, v3, v7, Color.Blue ),
-                new Triangle( v2, v7, v6, Color.Blue ),
-
+		        new Triangle( v02, v03, v07, Color.Blue ),
+                new Triangle( v02, v07, v06, Color.Blue ),
+                                          
 		        // BOTTOM                                                    
-		        new Triangle( v5, v1, v0, Color.Blue ),
-                new Triangle( v5, v0, v4, Color.Blue ),
+		        new Triangle( v05, v01, v00, Color.Blue ),
+                new Triangle( v05, v00, v04, Color.Blue ),
+                                          
+                // SEC CUBE               
+                // SOUTH                  
+                new Triangle( v10, v12, v16, Color.Green ),
+                new Triangle( v10, v16, v14, Color.Green ),
+                                          
+		        // EAST                                                      
+		        new Triangle( v14, v16, v17, Color.Red ),
+                new Triangle( v14, v17, v15, Color.Red ),
+                                          
+		        // NORTH                                                     
+		        new Triangle( v15, v17, v13, Color.Green ),
+                new Triangle( v15, v13, v11, Color.Green ),
+                                          
+		        // WEST                                                      
+		        new Triangle( v11, v13, v12, Color.Red ),
+                new Triangle( v11, v12, v10, Color.Red ),
+                                          
+		        // TOP                                                       
+		        new Triangle( v12, v13, v17, Color.Blue ),
+                new Triangle( v12, v17, v16, Color.Blue ),
+                                          
+		        // BOTTOM                                                    
+		        new Triangle( v15, v11, v10, Color.Blue ),
+                new Triangle( v15, v10, v14, Color.Blue ),
             };
 
             ///////////
