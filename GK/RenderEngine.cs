@@ -239,6 +239,9 @@ namespace GK
 
                 //test zbuffer wireframe
                 DrawTriangle(triangle, PrimitiveType.LineStrip);
+
+                //test zbuffer fill
+                DrawTriangle(triangle, PrimitiveType.Triangles);
             }
             //draw bitmap to screen
             Image img = new Image(Bitmap);
@@ -253,7 +256,126 @@ namespace GK
         {
             if(primitiveType == PrimitiveType.Triangles)
             {
-                
+                //void fillBottomFlatTriangle(Vec3 v1, Vec3 v2, Vec3 v3, Color color)
+                //{
+                //    float invslope1 = (v2.X - v1.X) / (v2.Y - v1.Y);
+                //    float invslope2 = (v3.X - v1.X) / (v3.Y - v1.Y);
+
+                //    float curx1 = v1.X;
+                //    float curx2 = v1.X;
+
+                //    for (int scanlineY = (int)v1.Y; scanlineY <= v2.Y; scanlineY++)
+                //    {
+                //        if (curx1 < 0 || curx2 < 0)
+                //            Console.WriteLine();
+                //        float z1 = 0; // TODO: COMPUTE Z
+                //        float z2 = 0; // TODO: COMPUTE Z
+                //        Vec3 from = new Vec3(curx1, scanlineY, z1);
+                //        Vec3 to = new Vec3(curx2, scanlineY, z2);
+                //        DrawLine(from, color, to, color);
+                //        curx1 += invslope1;
+                //        curx2 += invslope2;
+                //    }
+                //}
+
+                //void fillTopFlatTriangle(Vec3 v1, Vec3 v2, Vec3 v3, Color color)
+                //{
+                //    float invslope1 = (v3.X - v1.X) / (v3.Y - v1.Y);
+                //    float invslope2 = (v3.X - v2.X) / (v3.Y - v2.Y);
+
+                //    float curx1 = v3.X;
+                //    float curx2 = v3.X;
+
+                //    for (int scanlineY = (int)v3.Y; scanlineY > v1.Y; scanlineY--)
+                //    {
+                //        float z1 = 0; // TODO: COMPUTE Z
+                //        float z2 = 0; // TODO: COMPUTE Z
+                //        Vec3 from = new Vec3(curx1, scanlineY, z1);
+                //        Vec3 to = new Vec3(curx2, scanlineY, z2);
+                //        DrawLine(from, color, to, color);
+                //        curx1 -= invslope1;
+                //        curx2 -= invslope2;
+                //    }
+                //}
+
+
+                //List<Vec3> sortedVecs = new List<Vec3>
+                //{
+                //    triangle[0],
+                //    triangle[1],
+                //    triangle[2],
+                //};
+                //sortedVecs = sortedVecs.OrderBy(i => i.Y).ToList();
+                //Vec3 A = sortedVecs[0];
+                //Vec3 B = sortedVecs[1];
+                //Vec3 C = sortedVecs[2];
+
+                ///* here we know that v1.y <= v2.y <= v3.y */
+                ///* check for trivial case of bottom-flat triangle */
+                //if (B.Y == C.Y)
+                //{
+                //    fillBottomFlatTriangle(A, B, C, triangle.Color);
+                //}
+                ///* check for trivial case of top-flat triangle */
+                //else if (A.Y == B.Y)
+                //{
+                //    fillTopFlatTriangle(A, B, C, triangle.Color);
+                //}
+                //else
+                //{
+                //    /* general case - split the triangle in a topflat and bottom-flat one */
+                //    float z = 0; // TODO: COMPUTE Z
+                //    Vec3 v4 = new Vec3(
+                //      (int)(A.X + ((float)(B.Y - A.Y) / (float)(C.Y - A.Y)) * (C.X - A.X)), 
+                //      B.Y,
+                //      z
+                //      );
+                //    fillBottomFlatTriangle(A, B, v4, triangle.Color);
+                //    fillTopFlatTriangle(B, v4, C, triangle.Color);
+                //}
+
+                //  barycentric
+
+                /* spanning vectors of edge (v1,v2) and (v1,v3) */
+                Vec2 vs1 = new Vec2(triangle[1].X - triangle[0].X, triangle[1].Y - triangle[0].Y);
+                Vec2 vs2 = new Vec2(triangle[2].X - triangle[0].X, triangle[2].Y - triangle[0].Y);
+
+                float minX, minY;
+                minX = minY = float.MaxValue;
+                float maxX, maxY;
+                maxX = maxY = float.MinValue;
+
+                minX = Math.Min(minX, triangle[0].X);
+                minX = Math.Min(minX, triangle[1].X);
+                minX = Math.Min(minX, triangle[2].X);
+                maxX = Math.Max(maxX, triangle[0].X);
+                maxX = Math.Max(maxX, triangle[1].X);
+                maxX = Math.Max(maxX, triangle[2].X);
+
+                minY = Math.Min(minY, triangle[0].Y);
+                minY = Math.Min(minY, triangle[1].Y);
+                minY = Math.Min(minY, triangle[2].Y);
+                maxY = Math.Max(maxY, triangle[0].Y);
+                maxY = Math.Max(maxY, triangle[1].Y);
+                maxY = Math.Max(maxY, triangle[2].Y);
+
+
+                for (int x = (int)minX; x <= maxX; x++)
+                {
+                    for (int y = (int)minY; y <= maxY; y++)
+                    {
+                        Vec2 q = new Vec2(x - triangle[0].X, y - triangle[0].Y);
+
+                        float s = q.Cross(vs2) / vs1.Cross(vs2);
+                        float t = vs1.Cross(q) / vs1.Cross(vs2);
+
+                        if ((s >= 0) && (t >= 0) && (s + t <= 1))
+                        { /* inside triangle */
+                            float z = s*triangle[0].Z + t * triangle[1].Z + (1-s-t) * triangle[2].Z;
+                            DrawPixel(new Vec3(x,y,z),triangle.Color);
+                        }
+                    }
+                }
             }
             else if (primitiveType == PrimitiveType.LineStrip)
             {
