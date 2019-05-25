@@ -25,6 +25,11 @@ namespace GK
         public Transform Projection { get; set; }
         public RenderWindow Window { get; set; }
 
+        private float[,] ZBuffer { get; set; }
+        private Color[,] Bitmap { get; set; }
+
+
+
         private Vec3 GetLineIntersectionWithPlane(Vec3 planePoint, Vec3 planeNormal, Vec3 lineStart, Vec3 lineEnd)
         {
             // to be sure it is normal
@@ -137,7 +142,7 @@ namespace GK
                 Vec3 v2 = GlobalTransform * triangle[2];
                 transformed.Add(new Triangle(v0, v1, v2, triangle.Color));
             }
-            //clip
+            //clip in 3d against camera
             Mesh clipped = new Mesh();
             foreach (Triangle triangle in transformed)
             {
@@ -164,18 +169,197 @@ namespace GK
                     projected.Add(new Triangle(v0, v1, v2, triangle.Color));
                 }
             }
+            //clip 2D to screen borders
+            Mesh clipped2D = new Mesh();
+            foreach (Triangle triangle in projected)
+            {
+                Queue<Triangle> qTris = new Queue<Triangle>();
+                qTris.Enqueue(triangle);
+                int nNewTriangles = 1;
+
+                for (int p = 0; p < 4; p++)
+                {
+                    while(nNewTriangles > 0)
+                    {
+                        Triangle t = qTris.Dequeue();
+                        nNewTriangles--;
+
+                        List<Triangle> clippedTriangles = new List<Triangle>();
+                        switch (p)
+                        {
+                            case 0:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(0, 1, 0), t);
+                                break;
+                            case 1:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(0,Camera.Instance.Height-1,0), new Vec3(0, -1, 0), t);
+                                break;
+                            case 2:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(1, 0, 0), t);
+                                break;
+                            case 3:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(Camera.Instance.Width-1,0,0), new Vec3(-1, 0, 0), t);
+                                break;
+
+                        }
+                        foreach (var item in clippedTriangles)
+                        {
+                            qTris.Enqueue(item);
+                        }
+                    }
+                    nNewTriangles = qTris.Count;
+                }
+                foreach (var item in qTris)
+                {
+                    clipped2D.Add(item);
+                }
+		    }
 
 
             //draw
-            foreach (Triangle triangle in projected)
+            //init frame
+            ZBuffer = new float[Window.Size.X, Window.Size.Y];
+            Bitmap = new Color[Window.Size.X, Window.Size.Y];
+
+
+            foreach (Triangle triangle in clipped2D)
             {
-                VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles);
-                vertexArray.Append(new Vertex((Vector2f)triangle[0], triangle.Color));
-                vertexArray.Append(new Vertex((Vector2f)triangle[1], triangle.Color));
-                vertexArray.Append(new Vertex((Vector2f)triangle[2], triangle.Color));
-                //vertexArray.Append(new Vertex((Vector2f)triangle[0], Color.White));
-                target.Draw(vertexArray);
+                ////with fill
+                //VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles);
+                //vertexArray.Append(new Vertex((Vector2f)triangle[0], triangle.Color));
+                //vertexArray.Append(new Vertex((Vector2f)triangle[1], triangle.Color));
+                //vertexArray.Append(new Vertex((Vector2f)triangle[2], triangle.Color));
+                //target.Draw(vertexArray);
+                ////with wireframe
+                //VertexArray vertexArrayWire = new VertexArray(PrimitiveType.LineStrip);
+                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
+                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[1], Color.Magenta));
+                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[2], Color.Magenta));
+                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
+                //target.Draw(vertexArrayWire);
+
+                //test zbuffer wireframe
+                DrawTriangle(triangle, PrimitiveType.LineStrip);
             }
+            //draw bitmap to screen
+            Image img = new Image(Bitmap);
+            Texture tex = new Texture(img);
+            Sprite s = new Sprite(tex);
+            target.Draw(s, states);
+            s.Dispose();
+            tex.Dispose();
+            img.Dispose();
+        }
+        private void DrawTriangle(Triangle triangle, PrimitiveType primitiveType)
+        {
+            if(primitiveType == PrimitiveType.Triangles)
+            {
+                
+            }
+            else if (primitiveType == PrimitiveType.LineStrip)
+            {
+                DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
+                DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
+                DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
+            }
+        }
+
+        private void DrawPixel(Vec3 pixel, Color color)
+        {
+            int screenX = (int)pixel.X;
+            int screenY = (int)pixel.Y;
+            if (pixel.Z < ZBuffer[screenX, screenY])
+            {
+                ZBuffer[screenX, screenY] = pixel.Z;
+                Bitmap[screenX, screenY] = color;
+            }
+        }
+        private void DrawLine(Vec3 from, Color color1, Vec3 to, Color color2)
+        {
+            float m;
+            if (to.X - from.X != 0) m = (to.Y - from.Y) / (to.X - from.X);
+            else m = to.Y - from.Y;
+            if (Math.Abs(m) >= 1)
+            {
+                Vec3 start;
+                Vec3 end;
+                Color startColor, endColor;
+                if(from.Y < to.Y)
+                {
+                    start = from;
+                    end = to;
+                    startColor = color1;
+                    endColor = color2;
+                }
+                else
+                {
+                    start = to;
+                    end = from;
+                    startColor = color2;
+                    endColor = color1;
+                }
+
+
+                float x = start.X;
+                for (float y = start.Y; y <= end.Y; y++)
+                {
+                    float traverseFraction = (end.Y - y) / (end.Y - start.Y);
+                    float z = start.Z + (end.Z - start.Z) * traverseFraction;
+                    
+                    Vec3 pixel = new Vec3(x, y, z);
+                    Color finalColor = Mix(startColor, endColor, traverseFraction);
+                    DrawPixel(pixel,finalColor);
+                    x += (to.X - from.X != 0) ? 1 / m : 0;
+                }
+            }
+            else
+            {
+                Vec3 start;
+                Vec3 end;
+                Color startColor, endColor;
+                if (from.X < to.X)
+                {
+                    start = from;
+                    end = to;
+                    startColor = color1;
+                    endColor = color2;
+                }
+                else
+                {
+                    start = to;
+                    end = from;
+                    startColor = color2;
+                    endColor = color1;
+                }
+
+                float y = start.Y;
+                for (float x = start.X; x <= end.X; x++)
+                {
+                    float traverseFraction = (end.X - x) / (end.X - start.X);
+                    float z = start.Z + (end.Z - start.Z) * traverseFraction;
+
+                    Vec3 pixel = new Vec3(x, y, z);
+                    Color finalColor = Mix(startColor, endColor, traverseFraction);
+                    DrawPixel(pixel, finalColor);
+                    y += m;
+                }
+            }
+        }
+        private Color Mix(Color c1, Color c2, float fraction)
+        {
+            float r = c1.R * fraction + c2.R * (1 - fraction);
+            float g = c1.G * fraction + c2.G * (1 - fraction);
+            float b = c1.B * fraction + c2.B * (1 - fraction);
+            float a = c1.A * fraction + c2.A * (1 - fraction);
+            r = Math.Max(r, 0);
+            g = Math.Max(g, 0);
+            b = Math.Max(b, 0);
+            a = Math.Max(a, 0);
+            r = Math.Min(r, 255);
+            g = Math.Min(g, 255);
+            b = Math.Min(b, 255);
+            a = Math.Min(a, 255);
+
+            return new Color((byte)r, (byte)g, (byte)b, (byte)a);
         }
     }
 }
