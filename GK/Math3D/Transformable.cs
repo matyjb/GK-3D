@@ -1,40 +1,44 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace GK.Math3D
 {
-    public abstract class Transformable3D
+    public abstract class Transformable
     {
-        private Vector3Df position = new Vector3Df();
-        private Vector3Df rotation = new Vector3Df();
-        private Vector3Df scale = new Vector3Df(1, 1, 1);
-        private Vector3Df origin = new Vector3Df();
-        private Transform3D parentTransform = Transform3D.Identity;
-        public Vector3Df Position { get => position; set { position = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
-        public Vector3Df Rotation { get => rotation; set { rotation = new Vector3Df(value.X % (2 * (float)Math.PI), value.Y % (2 * (float)Math.PI), value.Z % (2 * (float)Math.PI)); transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
-        public Vector3Df Scale { get => scale; set { scale = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
-        public Vector3Df Origin { get => origin; set { origin = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
-        public Transform3D ParentTransform { get => parentTransform; set { parentTransform = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
+        private Vec3 position = new Vec3();
+        private Vec3 rotation = new Vec3();
+        private Vec3 scale = new Vec3(1, 1, 1);
+        private Vec3 origin = new Vec3();
+        private Transform parentTransform = Transform.Identity;
+        public Vec3 Position { get => position; set { position = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
+        public Vec3 Rotation { get => rotation; set { rotation = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
+        public Vec3 Scale { get => scale; set { scale = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
+        public Vec3 Origin { get => origin; set { origin = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
+        public Transform ParentTransform { get => parentTransform; set { parentTransform = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
 
 
 
-        private Transform3D transform = Transform3D.Identity;
+        private Transform transform = Transform.Identity;
         private bool transformUpdateNeeded = false;
-        private Transform3D inverseTransform = Transform3D.Identity;
+        private Transform inverseTransform = Transform.Identity;
         private bool inverseTransformUpdateNeeded = false;
-        public Transform3D Transform
+        public Transform Transform
         {
             get
             {
                 if (transformUpdateNeeded)
                 {
-                    transform = ParentTransform * Transform3D.Identity.Translate(-Origin).Rotate(Rotation).Scale(Scale).Translate(Position);
+                    transform = ParentTransform * Transform.Identity.Translate(-Origin).Rotate(Rotation).Scale(Scale).Translate(Position);
                     transformUpdateNeeded = false;
                 }
 
                 return transform;
             }
         }
-        public Transform3D InverseTransform
+        public Transform InverseTransform
         {
             get
             {
@@ -84,7 +88,7 @@ namespace GK.Math3D
                     float ans43 = (-m00 * m11 * m32 - m01 * m12 * m30 - m02 * m10 * m31 + m02 * m11 * m30 + m01 * m10 * m32 + m00 * m12 * m31) / det;
                     float ans44 = (m00 * m11 * m22 + m01 * m12 * m20 + m02 * m10 * m21 - m02 * m11 * m20 - m01 * m10 * m22 - m00 * m12 * m21) / det;
 
-                    inverseTransform = ParentTransform * new Transform3D(ans11, ans12, ans13, ans14, ans21, ans22, ans23, ans24, ans31, ans32, ans33, ans34, ans41, ans42, ans43, ans44);
+                    inverseTransform = ParentTransform * new Transform(ans11, ans12, ans13, ans14, ans21, ans22, ans23, ans24, ans31, ans32, ans33, ans34, ans41, ans42, ans43, ans44);
                     inverseTransformUpdateNeeded = false;
                 }
                 return inverseTransform;

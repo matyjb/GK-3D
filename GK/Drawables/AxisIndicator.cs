@@ -1,29 +1,23 @@
 ﻿using GK.Math3D;
 using SFML.Graphics;
 using SFML.System;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Transform = GK.Math3D.Transform;
+using Transformable = GK.Math3D.Transformable;
 
 namespace GK.Drawables
 {
-    public class AxisIndicator : Transformable3D, Drawable
+    public class AxisIndicator : Transformable, Drawable
     {
-        public Camera Camera { get; private set; }
-        public AxisIndicator(Camera camera)
-        {
-            Camera = camera;
-        }
         public void Draw(RenderTarget target, RenderStates states)
         {
-            Vector3Df vX = new Vector3Df(20, 0, 0);
-            Vector3Df vY = new Vector3Df(0, 20, 0);
-            Vector3Df vZ = new Vector3Df(0, 0, 20);
+            Vec3 vX = new Vec3(-20, 0, 0);
+            Vec3 vY = new Vec3(0, -20, 0);
+            Vec3 vZ = new Vec3(0, 0, -20);
+            Vec3 cameraCenter = new Vec3(Camera.Instance.Width / 2, Camera.Instance.Height / 2);
 
-            Position = Camera.Position;
-            Transform3D t = Camera.InverseTransform * Transform;
+            Position = Camera.Instance.Position;
+            Transform t = Camera.Instance.InverseTransform * Transform;
+            t.Translate(cameraCenter);
             vX = t * vX;
             vY = t * vY;
             vZ = t * vZ;
@@ -32,12 +26,12 @@ namespace GK.Drawables
             //vertices
             Vertex[] vs = new Vertex[]
             {
-                new Vertex(new Vector2f(vX.X,-vX.Y),Color.Red),
-                new Vertex(new Vector2f(),Color.Red),
-                new Vertex(new Vector2f(vY.X,-vY.Y),Color.Green),
-                new Vertex(new Vector2f(),Color.Green),
-                new Vertex(new Vector2f(vZ.X,-vZ.Y),Color.Blue),
-                new Vertex(new Vector2f(),Color.Blue),
+                new Vertex((Vector2f)vX,Color.Red),
+                new Vertex((Vector2f)cameraCenter,Color.Red),
+                new Vertex((Vector2f)vY,Color.Green),
+                new Vertex((Vector2f)cameraCenter,Color.Green),
+                new Vertex((Vector2f)vZ,Color.Blue),
+                new Vertex((Vector2f)cameraCenter,Color.Blue),
             };
             target.Draw(vs, PrimitiveType.Lines);
 
