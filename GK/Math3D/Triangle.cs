@@ -1,9 +1,7 @@
-﻿using System;
+﻿using SFML.Graphics;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GK.Math3D
 {
@@ -12,6 +10,14 @@ namespace GK.Math3D
         public Vec3 v0 { get; set; }
         public Vec3 v1 { get; set; }
         public Vec3 v2 { get; set; }
+
+        public Color Color { get; set; }
+
+        public Vec3 NormalVector { get {
+                Vec3 l0 = v1 - v0;
+                Vec3 l1 = v2 - v0;
+                return l0.Cross(l1).Normal();
+            } }
 
         public Vec3 this[int index]
         {
@@ -37,11 +43,15 @@ namespace GK.Math3D
             }
         }
 
-        public Triangle(Vec3 v0, Vec3 v1, Vec3 v2)
+        public Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Color color)
         {
             this.v0 = v0;
             this.v1 = v1;
             this.v2 = v2;
+            Color = color;
+        }
+        public Triangle(Vec3 v0, Vec3 v1, Vec3 v2):this(v0,v1,v2,Color.White)
+        {
         }
         public IEnumerator<Vec3> GetEnumerator()
         {

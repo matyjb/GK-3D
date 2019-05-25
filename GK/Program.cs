@@ -1,4 +1,5 @@
-﻿using GK.Math3D;
+﻿using GK.Drawables;
+using GK.Math3D;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -13,10 +14,14 @@ namespace GK
         public static uint Width = 800;
         public static uint Height = 600;
         public static RenderWindow window = new RenderWindow(new VideoMode(Width, Height), "GK");
+        public static RenderEngine engine = RenderEngine.Instance;
         public static Time deltaTime;
+        public static bool IsMouseCenterSnapped = false;
 
         static void Main(string[] args)
         {
+            engine.Window = window;
+            Camera.Instance.Position = new Vec3(0, 0, -10);
             Clock deltaClock = new Clock();
             Font font = new Font("./Fonts/arial.ttf");
             Text fpsAmount = new Text("fps: 0", font)
@@ -27,6 +32,7 @@ namespace GK
                 OutlineThickness = 1,
                 Style = Text.Styles.Bold,
             };
+
 
             deltaTime = deltaClock.Restart();
             window.SetFramerateLimit(90);
@@ -52,46 +58,29 @@ namespace GK
             Mesh cube = new Mesh()
             {
                 // SOUTH
-                new Triangle( v0, v2, v6 ),
-                new Triangle( v0, v6, v4 ),
+                new Triangle( v0, v2, v6, Color.Green ),
+                new Triangle( v0, v6, v4, Color.Green ),
 
 		        // EAST                                                      
-		        new Triangle( v4, v6, v7 ),
-                new Triangle( v4, v7, v5 ),
+		        new Triangle( v4, v6, v7, Color.Red ),
+                new Triangle( v4, v7, v5, Color.Red ),
 
 		        // NORTH                                                     
-		        new Triangle( v5, v7, v3 ),
-                new Triangle( v5, v3, v1 ),
+		        new Triangle( v5, v7, v3, Color.Green ),
+                new Triangle( v5, v3, v1, Color.Green ),
 
 		        // WEST                                                      
-		        new Triangle( v1, v3, v2 ),
-                new Triangle( v1, v2, v0 ),
+		        new Triangle( v1, v3, v2, Color.Red ),
+                new Triangle( v1, v2, v0, Color.Red ),
 
 		        // TOP                                                       
-		        new Triangle( v2, v3, v7 ),
-                new Triangle( v2, v7, v6 ),
+		        new Triangle( v2, v3, v7, Color.Blue ),
+                new Triangle( v2, v7, v6, Color.Blue ),
 
 		        // BOTTOM                                                    
-		        new Triangle( v5, v1, v0 ),
-                new Triangle( v5, v0, v4 ),
+		        new Triangle( v5, v1, v0, Color.Blue ),
+                new Triangle( v5, v0, v4, Color.Blue ),
             };
-
-            // Projection Matrix
-            float fNear = 0.8f;
-            float fFar = 1000.0f;
-            float fFov = 90.0f;
-            float fAspectRatio = (float)Height / (float)Width;
-            float fFovRad = 1.0f / (float)Math.Tan(fFov * 0.5f / 180.0f * Math.PI);
-
-            float[,] m = new float[4, 4];
-            m[0, 0] = fAspectRatio * fFovRad;
-            m[1, 1] = fFovRad;
-            m[2, 2] = fFar / (fFar - fNear);
-            m[3, 2] = (-fFar * fNear) / (fFar - fNear);
-            m[2, 3] = 1.0f;
-            m[3, 3] = 0.0f;
-            Transform matProj = new Transform(m);
-            float theta = 0;
 
             ///////////
             while (window.IsOpen)
@@ -101,31 +90,17 @@ namespace GK
                 Keys();
                 window.Clear();
                 /////////////////
-                ///rotation 
-                theta += 1 * deltaTime.AsSeconds();
-                Transform rotTran = Transform.Identity.Rotate(new Vec3(theta / 2, 0, theta)).Translate(new Vec3(0, 0, 3));
-                foreach (Triangle triangle in cube)
-                {
-                    Vertex[] vertexArray = new Vertex[4];
-                    for (int i = 0; i < 3; i++)
-                    {
-                        Vec3 tmp = matProj * rotTran * triangle[i];
-                        //move and scale into view
-                        tmp.X += 1f;
-                        tmp.Y += 1f;
-                        tmp.X *= Width / 2;
-                        tmp.Y *= Height / 2;
-                        vertexArray[i] = new Vertex((Vector2f)tmp, Color.White);
-                        if (i == 0) vertexArray[3] = new Vertex((Vector2f)tmp, Color.White);
-                    }
-
-                    window.Draw(vertexArray, PrimitiveType.LineStrip);
-                }
+                ///rotation and translation
+                engine.Mesh = cube;
+                engine.GlobalTransform = Camera.Instance.InverseTransform;
+                engine.Projection = Camera.Instance.ProjectionTransform;
 
 
 
                 /////////////////
+                window.Draw(engine);
                 window.Draw(fpsAmount);
+                window.Draw(new AxisIndicator());
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }
@@ -133,6 +108,10 @@ namespace GK
 
         private static void Window_MouseWheelScrolled(object sender, MouseWheelScrollEventArgs e)
         {
+            float d = (float)Math.Abs(Camera.Instance.Near - Math.Round(Camera.Instance.Near)) / 2;
+            Camera.Instance.Near += d * -e.Delta;
+            Camera.Instance.Near = Math.Max(Camera.Instance.Near, 0.01f);
+            Camera.Instance.Near = Math.Min(Camera.Instance.Near, 0.99f);
         }
 
         private static void Window_Closed(object sender, EventArgs e)
@@ -142,31 +121,94 @@ namespace GK
 
         private static void Window_Resized(object sender, SizeEventArgs e)
         {
+            Width = e.Width;
+            Height = e.Height;
+            View newView = new View(new FloatRect(0, 0, Width, Height));
+            window.SetView(newView);
+            Camera.Instance.Width = Width;
+            Camera.Instance.Height = Height;
         }
 
         private static void Window_MouseButtonPressed(object sender, MouseButtonEventArgs e)
         {
+            if (e.Button == Mouse.Button.Left)
+            {
+                IsMouseCenterSnapped = true;
+                window.SetMouseCursorVisible(false);
+            }
+            else if (e.Button == Mouse.Button.Right)
+            {
+                IsMouseCenterSnapped = false;
+                window.SetMouseCursorVisible(true);
+            }
         }
 
         private static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
         {
+            if (IsMouseCenterSnapped)
+            {
+                Vector2i windowCenter = (Vector2i)window.Size / 2;
+                Mouse.SetPosition(windowCenter, window);
+                //translate mouse movement to 3d rotation
+                Vector2i delta = new Vector2i(e.X, e.Y) - windowCenter;
+
+                float rotationScale = Camera.Instance.RotatingSpeedPerSec;
+                //mouse move half screen = 90 deg rotation
+                float angleXnoZ = -delta.X / (float)windowCenter.X * (float)Math.PI / 2 * rotationScale; //up down
+                float angleYnoZ = -delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
+                //including Z rotation
+                float sinZ = (float)Math.Sin(Camera.Instance.Rotation.Z);
+                float cosZ = (float)Math.Cos(Camera.Instance.Rotation.Z);
+                float angleX = angleXnoZ * cosZ + angleYnoZ * sinZ;
+                float angleY = angleXnoZ * sinZ - angleYnoZ * cosZ;
+
+                ////bound camera X angle to [-90 ; 90]
+                float finalAngleY = Camera.Instance.Rotation.X + angleY;
+                finalAngleY = (float)Math.Max(finalAngleY, -Math.PI / 2);
+                finalAngleY = (float)Math.Min(finalAngleY, Math.PI / 2);
+                finalAngleY -= Camera.Instance.Rotation.X;
+
+                Camera.Instance.Rotation += new Vec3(finalAngleY, -angleX, 0);
+            }
         }
 
         public static List<Keyboard.Key> pressedKeys = new List<Keyboard.Key>();
 
         private static void Keys()
         {
+            Transform t = Transform.Identity.Rotate(new Vec3(0, Camera.Instance.Rotation.Y, 0));
+
             foreach (var key in pressedKeys)
             {
                 switch (key)
                 {
-                    //FOV
-                    //case Keyboard.Key.P:
-                    //    sceneCamera.FOVAngle -= cameraStepsPerSec * deltaTime.AsSeconds() / 200;
-                    //    break;
-                    //case Keyboard.Key.O:
-                    //    sceneCamera.FOVAngle += cameraStepsPerSec * deltaTime.AsSeconds() / 200;
-                    //    break;
+                    //Moving
+                    case Keyboard.Key.W:
+                        Camera.Instance.Position += t * new Vec3(0, 0, Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds());
+                        break;
+                    case Keyboard.Key.S:
+                        Camera.Instance.Position += t * new Vec3(0, 0, -Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds());
+                        break;
+                    case Keyboard.Key.A:
+                        Camera.Instance.Position += t * new Vec3(Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0, 0);
+                        break;
+                    case Keyboard.Key.D:
+                        Camera.Instance.Position += t * new Vec3(-Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0, 0);
+                        break;
+                    case Keyboard.Key.LShift:
+                        Camera.Instance.Position += t * new Vec3(0, -Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0);
+                        break;
+                    case Keyboard.Key.Space:
+                        Camera.Instance.Position += t * new Vec3(0, Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0);
+                        break;
+                    //camera tilt
+                    case Keyboard.Key.Q:
+                        Camera.Instance.Rotation += new Vec3(0, 0, Camera.Instance.RotatingSpeedPerSec * deltaTime.AsSeconds());
+                        break;
+                    case Keyboard.Key.E:
+                        Camera.Instance.Rotation -= new Vec3(0, 0, Camera.Instance.RotatingSpeedPerSec * deltaTime.AsSeconds());
+                        break;
+
                     case Keyboard.Key.Escape:
                         window.Close();
                         break;
