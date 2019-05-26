@@ -162,10 +162,17 @@ namespace GK
                 //only if visible
                 if (triangle.NormalVector.Dot(triangle[0]) < 0)
                 {
-                    // SIMPLE ILLUMINATION 
-                    Vec3 lightDirection = new Vec3(0, 0, -1).Normal();
-                    float dp = triangle.NormalVector.Dot(lightDirection);
-                    Color shadedColor = Mix(triangle.Color, Color.Black, dp);
+                    // ILLUMINATION - Lambert
+                    Vec3 lightSource = Camera.Instance.InverseTransform * new Vec3(0, 1, -1);
+                    lightSource = (lightSource / lightSource.W).Normal();
+
+                    Vec3 N = triangle.NormalVector;
+                    Vec3 L = (lightSource - triangle.Center).Normal();
+                    float kd = 0.7f;
+                    float Ip = 1;
+                    float I = Ip * kd * N.Dot(L);
+                    I = (float)Math.Max(I, 0.2f);
+                    Color shadedColor = Mix(triangle.Color, Color.Black, I);
 
                     //project and move, and scale into view
                     Vec3 v0 = final * triangle[0];

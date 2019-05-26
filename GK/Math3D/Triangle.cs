@@ -18,6 +18,13 @@ namespace GK.Math3D
                 Vec3 l1 = v2 - v0;
                 return l0.Cross(l1).Normal();
             } }
+        public Vec3 Center
+        {
+            get
+            {
+                return (v0 + v1 + v2) / 3;
+            }
+        }
 
         public Vec3 this[int index]
         {
