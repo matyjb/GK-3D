@@ -84,6 +84,7 @@
     <Compile Include="Math3D\Vec2.cs" />
     <Compile Include="Math3D\Vec3.cs" />
     <Compile Include="Math3D\Vertex3.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RenderEngine.cs" />

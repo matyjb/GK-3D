@@ -237,10 +237,12 @@ namespace GK
                 //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
                 //target.Draw(vertexArrayWire);
 
-                //test zbuffer fill
-                DrawTriangle(triangle, PrimitiveType.Triangles);
-                //test zbuffer wireframe
-                DrawTriangle(triangle, PrimitiveType.LineStrip);
+                if(Options.Instance.DrawWireframe)
+                    //test zbuffer wireframe
+                    DrawTriangle(triangle, PrimitiveType.LineStrip);
+                else
+                    //test zbuffer fill
+                    DrawTriangle(triangle, PrimitiveType.Triangles);
 
             }
             //draw bitmap to screen
@@ -385,9 +387,9 @@ namespace GK
                 //DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
                 //DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
                 //DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
-                DrawLine(triangle[0], Color.White, triangle[1], Color.Magenta);
-                DrawLine(triangle[1], Color.Magenta, triangle[2], Color.Cyan);
-                DrawLine(triangle[2], Color.Cyan, triangle[0], Color.White);
+                DrawLine(triangle[0], Color.White, triangle[1], Color.White);
+                DrawLine(triangle[1], Color.White, triangle[2], Color.White);
+                DrawLine(triangle[2], Color.White, triangle[0], Color.White);
             }
         }
 

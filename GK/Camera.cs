@@ -23,8 +23,6 @@ namespace GK
         public float Fov { get; set; } = 90.0f;
         public float Width { get; set; } = 800;
         public float Height { get; set; } = 600;
-        public float MovingSpeedPerSec { get; set; } = 3;
-        public float RotatingSpeedPerSec { get; set; } = 0.5f;
 
         public Transform ProjectionTransform { get
             {

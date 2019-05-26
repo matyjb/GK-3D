@@ -70,53 +70,53 @@ namespace GK
             Mesh cube = new Mesh()
             {
                 // SOUTH
-                new Triangle( v00, v02, v06, Color.Green ),
-                new Triangle( v00, v06, v04, Color.Green ),
+                new Triangle( v00, v02, v06, Color.Blue ),
+                new Triangle( v00, v06, v04, Color.Blue ),
 
 		        // EAST                                                      
 		        new Triangle( v04, v06, v07, Color.Red ),
                 new Triangle( v04, v07, v05, Color.Red ),
 
 		        // NORTH                                                     
-		        new Triangle( v05, v07, v03, Color.Green ),
-                new Triangle( v05, v03, v01, Color.Green ),
+		        new Triangle( v05, v07, v03, Color.Blue ),
+                new Triangle( v05, v03, v01, Color.Blue ),
 
 		        // WEST                                                      
 		        new Triangle( v01, v03, v02, Color.Red ),
                 new Triangle( v01, v02, v00, Color.Red ),
 
 		        // TOP                                                       
-		        new Triangle( v02, v03, v07, Color.Blue ),
-                new Triangle( v02, v07, v06, Color.Blue ),
+		        new Triangle( v02, v03, v07, Color.Green ),
+                new Triangle( v02, v07, v06, Color.Green ),
                                           
 		        // BOTTOM                                                    
-		        new Triangle( v05, v01, v00, Color.Blue ),
-                new Triangle( v05, v00, v04, Color.Blue ),
+		        new Triangle( v05, v01, v00, Color.Green ),
+                new Triangle( v05, v00, v04, Color.Green ),
                                           
                 // SEC CUBE               
                 // SOUTH                  
-                new Triangle( v10, v12, v16, Color.Green ),
-                new Triangle( v10, v16, v14, Color.Green ),
+                new Triangle( v10, v12, v16, Color.Blue ),
+                new Triangle( v10, v16, v14, Color.Blue ),
                                           
 		        // EAST                                                      
 		        new Triangle( v14, v16, v17, Color.Red ),
                 new Triangle( v14, v17, v15, Color.Red ),
                                           
 		        // NORTH                                                     
-		        new Triangle( v15, v17, v13, Color.Green ),
-                new Triangle( v15, v13, v11, Color.Green ),
+		        new Triangle( v15, v17, v13, Color.Blue ),
+                new Triangle( v15, v13, v11, Color.Blue ),
                                           
 		        // WEST                                                      
 		        new Triangle( v11, v13, v12, Color.Red ),
                 new Triangle( v11, v12, v10, Color.Red ),
                                           
 		        // TOP                                                       
-		        new Triangle( v12, v13, v17, Color.Blue ),
-                new Triangle( v12, v17, v16, Color.Blue ),
+		        new Triangle( v12, v13, v17, Color.Green ),
+                new Triangle( v12, v17, v16, Color.Green ),
                                           
 		        // BOTTOM                                                    
-		        new Triangle( v15, v11, v10, Color.Blue ),
-                new Triangle( v15, v10, v14, Color.Blue ),
+		        new Triangle( v15, v11, v10, Color.Green ),
+                new Triangle( v15, v10, v14, Color.Green ),
             };
 
             ///////////
@@ -136,8 +136,11 @@ namespace GK
 
                 /////////////////
                 window.Draw(engine);
-                window.Draw(fpsAmount);
-                window.Draw(new AxisIndicator());
+
+                if(Options.Instance.ShowHUD)
+                    window.Draw(fpsAmount);
+                if(Options.Instance.ShowAxis)
+                    window.Draw(new AxisIndicator());
                 window.Display();
                 deltaTime = deltaClock.Restart();
             }
@@ -189,7 +192,7 @@ namespace GK
                 //translate mouse movement to 3d rotation
                 Vector2i delta = new Vector2i(e.X, e.Y) - windowCenter;
 
-                float rotationScale = Camera.Instance.RotatingSpeedPerSec;
+                float rotationScale = Options.Instance.RotatingSpeedPerSec;
                 //mouse move half screen = 90 deg rotation
                 float angleXnoZ = -delta.X / (float)windowCenter.X * (float)Math.PI / 2 * rotationScale; //up down
                 float angleYnoZ = -delta.Y / (float)windowCenter.Y * (float)Math.PI / 2 * rotationScale; //left right
@@ -221,31 +224,30 @@ namespace GK
                 {
                     //Moving
                     case Keyboard.Key.W:
-                        Camera.Instance.Position += t * new Vec3(0, 0, Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds());
+                        Camera.Instance.Position += t * new Vec3(0, 0, Options.Instance.MovingSpeedPerSec * deltaTime.AsSeconds());
                         break;
                     case Keyboard.Key.S:
-                        Camera.Instance.Position += t * new Vec3(0, 0, -Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds());
+                        Camera.Instance.Position += t * new Vec3(0, 0, -Options.Instance.MovingSpeedPerSec * deltaTime.AsSeconds());
                         break;
                     case Keyboard.Key.A:
-                        Camera.Instance.Position += t * new Vec3(Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0, 0);
+                        Camera.Instance.Position += t * new Vec3(Options.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0, 0);
                         break;
                     case Keyboard.Key.D:
-                        Camera.Instance.Position += t * new Vec3(-Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0, 0);
+                        Camera.Instance.Position += t * new Vec3(-Options.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0, 0);
                         break;
                     case Keyboard.Key.LShift:
-                        Camera.Instance.Position += t * new Vec3(0, -Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0);
+                        Camera.Instance.Position += t * new Vec3(0, -Options.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0);
                         break;
                     case Keyboard.Key.Space:
-                        Camera.Instance.Position += t * new Vec3(0, Camera.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0);
+                        Camera.Instance.Position += t * new Vec3(0, Options.Instance.MovingSpeedPerSec * deltaTime.AsSeconds(), 0);
                         break;
                     //camera tilt
                     case Keyboard.Key.Q:
-                        Camera.Instance.Rotation += new Vec3(0, 0, Camera.Instance.RotatingSpeedPerSec * deltaTime.AsSeconds());
+                        Camera.Instance.Rotation += new Vec3(0, 0, Options.Instance.RotatingSpeedPerSec * deltaTime.AsSeconds());
                         break;
                     case Keyboard.Key.E:
-                        Camera.Instance.Rotation -= new Vec3(0, 0, Camera.Instance.RotatingSpeedPerSec * deltaTime.AsSeconds());
+                        Camera.Instance.Rotation -= new Vec3(0, 0, Options.Instance.RotatingSpeedPerSec * deltaTime.AsSeconds());
                         break;
-
                     case Keyboard.Key.Escape:
                         window.Close();
                         break;
@@ -260,7 +262,24 @@ namespace GK
 
         private static void Window_KeyPressed(object sender, KeyEventArgs e)
         {
-            pressedKeys.Add(e.Code);
+            switch (e.Code)
+            {
+                //hud toggle
+                case Keyboard.Key.F2:
+                    Options.Instance.ShowHUD = !Options.Instance.ShowHUD;
+                    break;
+                //debug - wireframe
+                case Keyboard.Key.F1:
+                    Options.Instance.DrawWireframe = !Options.Instance.DrawWireframe;
+                    break;
+                //debug - axis
+                case Keyboard.Key.F3:
+                    Options.Instance.ShowAxis = !Options.Instance.ShowAxis;
+                    break;
+                default:
+                    pressedKeys.Add(e.Code);
+                    break;
+            }
         }
     }
 }
