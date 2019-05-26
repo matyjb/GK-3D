@@ -162,11 +162,17 @@ namespace GK
                 //only if visible
                 if (triangle.NormalVector.Dot(triangle[0]) < 0)
                 {
+                    // SIMPLE ILLUMINATION 
+                    Vec3 lightDirection = new Vec3(0, 0, -1).Normal();
+                    float dp = triangle.NormalVector.Dot(lightDirection);
+                    Color shadedColor = Mix(triangle.Color, Color.Black, dp);
+
                     //project and move, and scale into view
                     Vec3 v0 = final * triangle[0];
                     Vec3 v1 = final * triangle[1];
                     Vec3 v2 = final * triangle[2];
-                    projected.Add(new Triangle(v0, v1, v2, triangle.Color));
+                    //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
+                    projected.Add(new Triangle(v0, v1, v2, shadedColor));
                 }
             }
             //clip 2D to screen borders
