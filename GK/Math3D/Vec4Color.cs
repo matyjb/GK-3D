@@ -17,6 +17,7 @@ namespace GK.Math3D
         public float B { get; set; }
         public float A { get; set; }
 
+        public float Lenght { get => (float)Math.Sqrt(Dot(this)); }
 
         /// <summary>
         /// Color vector where colors are represented by 0 to 1 float value
@@ -26,7 +27,7 @@ namespace GK.Math3D
         /// <param name="g"></param>
         /// <param name="b"></param>
         /// <param name="a"></param>
-        public Vec4Color(float r = 0, float g = 0, float b = 0, float a = 0)
+        public Vec4Color(float r = 0, float g = 0, float b = 0, float a = 1)
         {
             R = r;
             G = g;
@@ -61,6 +62,14 @@ namespace GK.Math3D
         {
             if (r == 0) return l;
             return new Vec4Color(l.R / r, l.G / r, l.B / r);
+        }
+        public float Dot(Vec4Color right)
+        {
+            return R * right.R + G * right.G + B * right.B + A * right.A;
+        }
+        public Vec4Color Normal()
+        {
+            return this / Lenght;
         }
         public static explicit operator Color(Vec4Color from)
         {
