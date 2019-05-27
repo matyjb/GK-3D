@@ -67,7 +67,7 @@ namespace GK
             Vec3 v15 = v05 + secCubeMoved;
             Vec3 v16 = v06 + secCubeMoved;
             Vec3 v17 = v07 + secCubeMoved;
-            Mesh cube = new Mesh()
+            Mesh cube1 = new Mesh()
             {
                 // SOUTH
                 new Triangle( v00, v02, v06, Color.Blue ),
@@ -92,8 +92,9 @@ namespace GK
 		        // BOTTOM                                                    
 		        new Triangle( v05, v01, v00, Color.Green ),
                 new Triangle( v05, v00, v04, Color.Green ),
-                                          
-                // SEC CUBE               
+            };
+            Mesh cube2 = new Mesh()
+            {              
                 // SOUTH                  
                 new Triangle( v10, v12, v16, Color.Blue ),
                 new Triangle( v10, v16, v14, Color.Blue ),
@@ -119,6 +120,12 @@ namespace GK
                 new Triangle( v15, v10, v14, Color.Green ),
             };
 
+            List<Mesh> meshes = new List<Mesh>
+            {
+                cube1,
+                cube2
+            };
+
             ///////////
             while (window.IsOpen)
             {
@@ -128,7 +135,7 @@ namespace GK
                 window.Clear();
                 /////////////////
                 ///rotation and translation
-                engine.Mesh = cube;
+                engine.Meshes = meshes;
                 engine.GlobalTransform = Camera.Instance.InverseTransform;
                 engine.Projection = Camera.Instance.ProjectionTransform;
 

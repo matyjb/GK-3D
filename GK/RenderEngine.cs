@@ -20,7 +20,7 @@ namespace GK
         private RenderEngine()
         {
         }
-        public Mesh Mesh { get; set; }
+        public List<Mesh> Meshes { get; set; }
         public Transform GlobalTransform { get; set; }
         public Transform Projection { get; set; }
         public RenderWindow Window { get; set; }
@@ -134,129 +134,133 @@ namespace GK
 
         public void Draw(RenderTarget target, RenderStates states)
         {
-            Mesh transformed = new Mesh();
-            foreach (Triangle triangle in Mesh)
-            {
-                Vec3 v0 = GlobalTransform * triangle[0];
-                Vec3 v1 = GlobalTransform * triangle[1];
-                Vec3 v2 = GlobalTransform * triangle[2];
-                transformed.Add(new Triangle(v0, v1, v2, triangle.Color));
-            }
-            //clip in 3d against camera
-            Mesh clipped = new Mesh();
-            foreach (Triangle triangle in transformed)
-            {
-                List<Triangle> clt = ClipAgainstPlane(new Vec3(0, 0, Camera.Instance.Near), new Vec3(0, 0, 1), triangle);
-                foreach (var item in clt)
-                {
-                    clipped.Add(item);
-                }
-            }
-            //
-
-            Mesh projected = new Mesh();
-            Transform intoViewMoveAndScale = Transform.Identity.Translate(new Vec3(1, 1, 0)).Scale(new Vec3(Window.Size.X / 2, Window.Size.Y / 2, 1));
-            Transform final = intoViewMoveAndScale * Projection;
-            foreach (Triangle triangle in clipped)
-            {
-                //only if visible
-                if (triangle.NormalVector.Dot(triangle[0]) < 0)
-                {
-                    // ILLUMINATION - Lambert
-                    Vec3 lightSource = Camera.Instance.InverseTransform * new Vec3(0, 1, -1);
-                    lightSource = (lightSource / lightSource.W).Normal();
-
-                    Vec3 N = triangle.NormalVector;
-                    Vec3 L = (lightSource - triangle.Center).Normal();
-                    float kd = 0.7f;
-                    float Ip = 1;
-                    float I = Ip * kd * N.Dot(L);
-                    I = (float)Math.Max(I, 0.2f);
-                    Color shadedColor = Mix(triangle.Color, Color.Black, I);
-
-                    //project and move, and scale into view
-                    Vec3 v0 = final * triangle[0];
-                    Vec3 v1 = final * triangle[1];
-                    Vec3 v2 = final * triangle[2];
-                    //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
-                    projected.Add(new Triangle(v0, v1, v2, shadedColor));
-                }
-            }
-            //clip 2D to screen borders
-            Mesh clipped2D = new Mesh();
-            foreach (Triangle triangle in projected)
-            {
-                Queue<Triangle> qTris = new Queue<Triangle>();
-                qTris.Enqueue(triangle);
-                int nNewTriangles = 1;
-
-                for (int p = 0; p < 4; p++)
-                {
-                    while(nNewTriangles > 0)
-                    {
-                        Triangle t = qTris.Dequeue();
-                        nNewTriangles--;
-
-                        List<Triangle> clippedTriangles = new List<Triangle>();
-                        switch (p)
-                        {
-                            case 0:
-                                clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(0, 1, 0), t);
-                                break;
-                            case 1:
-                                clippedTriangles = ClipAgainstPlane(new Vec3(0,Camera.Instance.Height-1,0), new Vec3(0, -1, 0), t);
-                                break;
-                            case 2:
-                                clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(1, 0, 0), t);
-                                break;
-                            case 3:
-                                clippedTriangles = ClipAgainstPlane(new Vec3(Camera.Instance.Width-1,0,0), new Vec3(-1, 0, 0), t);
-                                break;
-
-                        }
-                        foreach (var item in clippedTriangles)
-                        {
-                            qTris.Enqueue(item);
-                        }
-                    }
-                    nNewTriangles = qTris.Count;
-                }
-                foreach (var item in qTris)
-                {
-                    clipped2D.Add(item);
-                }
-		    }
-
-
-            //draw
             //init frame
             ZBuffer = new float[Window.Size.X, Window.Size.Y];
             Bitmap = new Color[Window.Size.X, Window.Size.Y];
-
-
-            foreach (Triangle triangle in clipped2D)
+            foreach (Mesh mesh in Meshes)
             {
-                ////with fill
-                //VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles);
-                //vertexArray.Append(new Vertex((Vector2f)triangle[0], triangle.Color));
-                //vertexArray.Append(new Vertex((Vector2f)triangle[1], triangle.Color));
-                //vertexArray.Append(new Vertex((Vector2f)triangle[2], triangle.Color));
-                //target.Draw(vertexArray);
-                ////with wireframe
-                //VertexArray vertexArrayWire = new VertexArray(PrimitiveType.LineStrip);
-                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
-                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[1], Color.Magenta));
-                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[2], Color.Magenta));
-                //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
-                //target.Draw(vertexArrayWire);
+                Mesh transformed = new Mesh();
+                foreach (Triangle triangle in mesh)
+                {
+                    Vec3 v0 = GlobalTransform * triangle[0];
+                    Vec3 v1 = GlobalTransform * triangle[1];
+                    Vec3 v2 = GlobalTransform * triangle[2];
+                    transformed.Add(new Triangle(v0, v1, v2, triangle.Color));
+                }
+                //clip in 3d against camera
+                Mesh clipped = new Mesh();
+                foreach (Triangle triangle in transformed)
+                {
+                    List<Triangle> clt = ClipAgainstPlane(new Vec3(0, 0, Camera.Instance.Near), new Vec3(0, 0, 1), triangle);
+                    foreach (var item in clt)
+                    {
+                        clipped.Add(item);
+                    }
+                }
+                //
 
-                if(Options.Instance.DrawWireframe)
-                    //test zbuffer wireframe
-                    DrawTriangle(triangle, PrimitiveType.LineStrip);
-                else
-                    //test zbuffer fill
-                    DrawTriangle(triangle, PrimitiveType.Triangles);
+                Mesh projected = new Mesh();
+                Transform intoViewMoveAndScale = Transform.Identity.Translate(new Vec3(1, 1, 0)).Scale(new Vec3(Window.Size.X / 2, Window.Size.Y / 2, 1));
+                Transform final = intoViewMoveAndScale * Projection;
+                foreach (Triangle triangle in clipped)
+                {
+                    //only if visible
+                    if (triangle.NormalVector.Dot(triangle[0]) < 0)
+                    {
+                        // ILLUMINATION - Lambert
+                        Vec3 lightSource = Camera.Instance.InverseTransform * new Vec3(0, 1, -1);
+                        lightSource = (lightSource / lightSource.W).Normal();
 
+                        Vec3 N = triangle.NormalVector;
+                        Vec3 L = (lightSource - triangle.Center).Normal();
+                        float kd = 0.7f;
+                        float Ip = 1;
+                        float I = Ip * kd * N.Dot(L);
+                        I = (float)Math.Max(I, 0.2f);
+                        Color shadedColor = Mix(triangle.Color, Color.Black, I);
+
+                        //project and move, and scale into view
+                        Vec3 v0 = final * triangle[0];
+                        Vec3 v1 = final * triangle[1];
+                        Vec3 v2 = final * triangle[2];
+                        //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
+                        projected.Add(new Triangle(v0, v1, v2, shadedColor));
+                    }
+                }
+                //clip 2D to screen borders
+                Mesh clipped2D = new Mesh();
+                foreach (Triangle triangle in projected)
+                {
+                    Queue<Triangle> qTris = new Queue<Triangle>();
+                    qTris.Enqueue(triangle);
+                    int nNewTriangles = 1;
+
+                    for (int p = 0; p < 4; p++)
+                    {
+                        while (nNewTriangles > 0)
+                        {
+                            Triangle t = qTris.Dequeue();
+                            nNewTriangles--;
+
+                            List<Triangle> clippedTriangles = new List<Triangle>();
+                            switch (p)
+                            {
+                                case 0:
+                                    clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(0, 1, 0), t);
+                                    break;
+                                case 1:
+                                    clippedTriangles = ClipAgainstPlane(new Vec3(0, Camera.Instance.Height - 1, 0), new Vec3(0, -1, 0), t);
+                                    break;
+                                case 2:
+                                    clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(1, 0, 0), t);
+                                    break;
+                                case 3:
+                                    clippedTriangles = ClipAgainstPlane(new Vec3(Camera.Instance.Width - 1, 0, 0), new Vec3(-1, 0, 0), t);
+                                    break;
+
+                            }
+                            foreach (var item in clippedTriangles)
+                            {
+                                qTris.Enqueue(item);
+                            }
+                        }
+                        nNewTriangles = qTris.Count;
+                    }
+                    foreach (var item in qTris)
+                    {
+                        clipped2D.Add(item);
+                    }
+                }
+
+
+                //draw
+                
+
+
+                foreach (Triangle triangle in clipped2D)
+                {
+                    ////with fill
+                    //VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles);
+                    //vertexArray.Append(new Vertex((Vector2f)triangle[0], triangle.Color));
+                    //vertexArray.Append(new Vertex((Vector2f)triangle[1], triangle.Color));
+                    //vertexArray.Append(new Vertex((Vector2f)triangle[2], triangle.Color));
+                    //target.Draw(vertexArray);
+                    ////with wireframe
+                    //VertexArray vertexArrayWire = new VertexArray(PrimitiveType.LineStrip);
+                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
+                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[1], Color.Magenta));
+                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[2], Color.Magenta));
+                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
+                    //target.Draw(vertexArrayWire);
+
+                    if (Options.Instance.DrawWireframe)
+                        //test zbuffer wireframe
+                        DrawTriangle(triangle, PrimitiveType.LineStrip);
+                    else
+                        //test zbuffer fill
+                        DrawTriangle(triangle, PrimitiveType.Triangles);
+
+                }
             }
             //draw bitmap to screen
             Image img = new Image(Bitmap);
