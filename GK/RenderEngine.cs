@@ -142,10 +142,7 @@ namespace GK
                 Mesh transformed = new Mesh();
                 foreach (Triangle triangle in mesh)
                 {
-                    Vec3 v0 = GlobalTransform * triangle[0];
-                    Vec3 v1 = GlobalTransform * triangle[1];
-                    Vec3 v2 = GlobalTransform * triangle[2];
-                    transformed.Add(new Triangle(v0, v1, v2, triangle.Color));
+                    transformed.Add(GlobalTransform * triangle);
                 }
                 //clip in 3d against camera
                 Mesh clipped = new Mesh();
@@ -168,7 +165,7 @@ namespace GK
                     if (triangle.NormalVector.Dot(triangle[0]) < 0)
                     {
                         // ILLUMINATION - Lambert
-                        Vec3 lightSource = Camera.Instance.InverseTransform * new Vec3(0, 1, -1);
+                        Vec3 lightSource = new Vec3(0, 0, 0);
                         lightSource = (lightSource / lightSource.W).Normal();
 
                         Vec3 N = triangle.NormalVector;
@@ -180,11 +177,10 @@ namespace GK
                         Color shadedColor = Mix(triangle.Color, Color.Black, I);
 
                         //project and move, and scale into view
-                        Vec3 v0 = final * triangle[0];
-                        Vec3 v1 = final * triangle[1];
-                        Vec3 v2 = final * triangle[2];
+                        Triangle t = final * triangle;
+                        t.Color = shadedColor;
                         //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
-                        projected.Add(new Triangle(v0, v1, v2, shadedColor));
+                        projected.Add(t);
                     }
                 }
                 //clip 2D to screen borders
@@ -239,20 +235,6 @@ namespace GK
 
                 foreach (Triangle triangle in clipped2D)
                 {
-                    ////with fill
-                    //VertexArray vertexArray = new VertexArray(PrimitiveType.Triangles);
-                    //vertexArray.Append(new Vertex((Vector2f)triangle[0], triangle.Color));
-                    //vertexArray.Append(new Vertex((Vector2f)triangle[1], triangle.Color));
-                    //vertexArray.Append(new Vertex((Vector2f)triangle[2], triangle.Color));
-                    //target.Draw(vertexArray);
-                    ////with wireframe
-                    //VertexArray vertexArrayWire = new VertexArray(PrimitiveType.LineStrip);
-                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
-                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[1], Color.Magenta));
-                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[2], Color.Magenta));
-                    //vertexArrayWire.Append(new Vertex((Vector2f)triangle[0], Color.Magenta));
-                    //target.Draw(vertexArrayWire);
-
                     if (Options.Instance.DrawWireframe)
                         //test zbuffer wireframe
                         DrawTriangle(triangle, PrimitiveType.LineStrip);

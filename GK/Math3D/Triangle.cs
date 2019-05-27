@@ -57,6 +57,13 @@ namespace GK.Math3D
             this.v2 = v2;
             Color = color;
         }
+        public Triangle(Triangle t)
+        {
+            v0 = t.v0;
+            v1 = t.v1;
+            v2 = t.v2;
+            Color = t.Color;
+        }
         public Triangle(Vec3 v0, Vec3 v1, Vec3 v2):this(v0,v1,v2,Color.White)
         {
         }

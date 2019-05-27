@@ -83,7 +83,7 @@ namespace GK.Math3D
             Vec3 v0 = l * r[0];
             Vec3 v1 = l * r[1];
             Vec3 v2 = l * r[2];
-            return new Triangle(v0, v1, v2);
+            return new Triangle(v0, v1, v2, r.Color);
         }
         public static Transform operator *(Transform left, Transform right)
         {
