@@ -167,23 +167,37 @@ namespace GK
                     if (triangle.NormalVector.Dot(triangle[0].Position) < 0)
                     {
                         // ILLUMINATION - Lambert
-                        // TODO: 3 POINT COLOR
-                        //Vec3 lightSource = new Vec3(0, 0, 0);
-                        //lightSource = (lightSource / lightSource.W).Normal();
+                        Vec3 lightSource = new Vec3(0, 0, 0);
+                        lightSource = (lightSource / lightSource.W).Normal();
 
-                        //Vec3 N = triangle.NormalVector;
-                        //Vec3 L = (lightSource - triangle.Center).Normal();
-                        //float kd = 0.7f;
-                        //float Ip = 1;
-                        //float I = Ip * kd * N.Dot(L);
-                        //I = (float)Math.Max(I, 0.2f);
-                        //Color shadedColor = Mix(triangle.Color, Color.Black, I);
+                        Vec3 N = triangle.NormalVector;
+                        Vec3 L0 = (lightSource - triangle[0].Position).Normal();
+                        Vec3 L1 = (lightSource - triangle[1].Position).Normal();
+                        Vec3 L2 = (lightSource - triangle[2].Position).Normal();
+                        float kd = 1f;
+                        float Ip = 1;
+                        float I0 = Ip * kd * N.Dot(L0);
+                        float I1 = Ip * kd * N.Dot(L1);
+                        float I2 = Ip * kd * N.Dot(L2);
+                        I0 = (float)Math.Max(I0, 0.2f);
+                        I1 = (float)Math.Max(I1, 0.2f);
+                        I2 = (float)Math.Max(I2, 0.2f);
+                        Vec4Color shadedColor0 = triangle[0].Color * I0;
+                        Vec4Color shadedColor1 = triangle[1].Color * I1;
+                        Vec4Color shadedColor2 = triangle[2].Color * I2;
 
                         //project and move, and scale into view
-                        Triangle t = final * triangle;
+                        Vec3 v0 = final * triangle[0].Position;
+                        Vec3 v1 = final * triangle[1].Position;
+                        Vec3 v2 = final * triangle[2].Position;
+                        Vertex3 vert0 = new Vertex3(v0, shadedColor0);
+                        Vertex3 vert1 = new Vertex3(v1, shadedColor1);
+                        Vertex3 vert2 = new Vertex3(v2, shadedColor2);
+                        projected.Add(new Triangle(vert0, vert1, vert2));
+
                         //t.Color = shadedColor;
                         //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
-                        projected.Add(t);
+                        //projected.Add(t);
                     }
                 }
                 //clip 2D to screen borders
