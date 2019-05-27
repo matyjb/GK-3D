@@ -78,12 +78,18 @@ namespace GK.Math3D
             else
                 return new Vec3(result[0], result[1], result[2]);
         }
+        public static Vertex3 operator *(Transform l, Vertex3 r)
+        {
+            Vec3 v = l * r.Position;
+            return new Vertex3(v, r.Color);
+        }
+
         public static Triangle operator *(Transform l, Triangle r)
         {
-            Vec3 v0 = l * r[0];
-            Vec3 v1 = l * r[1];
-            Vec3 v2 = l * r[2];
-            return new Triangle(v0, v1, v2, r.Color);
+            Vertex3 v0 = l * r.v0;
+            Vertex3 v1 = l * r.v1;
+            Vertex3 v2 = l * r.v2;
+            return new Triangle(v0, v1, v2);
         }
         public static Transform operator *(Transform left, Transform right)
         {

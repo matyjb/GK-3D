@@ -83,6 +83,7 @@
     <Compile Include="Math3D\Triangle.cs" />
     <Compile Include="Math3D\Vec2.cs" />
     <Compile Include="Math3D\Vec3.cs" />
+    <Compile Include="Math3D\Vec4Color.cs" />
     <Compile Include="Math3D\Vertex3.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />

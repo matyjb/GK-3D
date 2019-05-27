@@ -79,5 +79,13 @@ namespace GK.Math3D
             byte A = (byte)Math.Max(Math.Min(Math.Round(255 * from.A),255),0);
             return new Color(R, G, B, A);
         }
+        public static explicit operator Vec4Color(Color from)
+        {
+            float R = from.R/255f;
+            float G = from.G/255f;
+            float B = from.B/255f;
+            float A = from.A/255f;
+            return new Vec4Color(R, G, B, A);
+        }
     }
 }

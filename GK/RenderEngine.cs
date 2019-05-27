@@ -30,18 +30,20 @@ namespace GK
 
 
 
-        private Vec3 GetLineIntersectionWithPlane(Vec3 planePoint, Vec3 planeNormal, Vec3 lineStart, Vec3 lineEnd)
+        private Vertex3 GetLineIntersectionWithPlane(Vec3 planePoint, Vec3 planeNormal, Vertex3 lineStart, Vertex3 lineEnd)
         {
             // to be sure it is normal
             planeNormal = planeNormal.Normal();
 
             float plane_d = -planeNormal.Dot(planePoint);
-            float ad = lineStart.Dot(planeNormal);
-            float bd = lineEnd.Dot(planeNormal);
+            float ad = lineStart.Position.Dot(planeNormal);
+            float bd = lineEnd.Position.Dot(planeNormal);
             float t = (-plane_d - ad) / (bd - ad);
-            Vec3 lineStartToEnd = lineEnd - lineStart;
+            Vec3 lineStartToEnd = lineEnd.Position - lineStart.Position;
+            Vec4Color colorStartToEnd = lineEnd.Color - lineStart.Color;
             Vec3 lineToIntersect = lineStartToEnd * t;
-            return lineStart + lineToIntersect;
+            Vec4Color colorToIntersect = colorStartToEnd * t;
+            return new Vertex3(lineStart.Position + lineToIntersect, lineStart.Color + colorToIntersect);
         }
 
         private List<Triangle> ClipAgainstPlane(Vec3 planePoint, Vec3 planeNormal, Triangle tri)
@@ -56,13 +58,13 @@ namespace GK
 
             // Create two temporary storage arrays to classify points either side of plane
             // If distance sign is positive, point lies on "inside" of plane
-            Vec3[] insidePoints = new Vec3[3]; int nInsidePointCount = 0;
-            Vec3[] outsidePoints = new Vec3[3]; int nOutsidePointCount = 0;
+            Vertex3[] insidePoints = new Vertex3[3]; int nInsidePointCount = 0;
+            Vertex3[] outsidePoints = new Vertex3[3]; int nOutsidePointCount = 0;
 
             // Get signed distance of each point in triangle to plane
-            float d0 = dist(tri[0]);
-            float d1 = dist(tri[1]);
-            float d2 = dist(tri[2]);
+            float d0 = dist(tri[0].Position);
+            float d1 = dist(tri[1].Position);
+            float d2 = dist(tri[2].Position);
 
             if (d0 >= 0) { insidePoints[nInsidePointCount++] = tri[0]; }
             else { outsidePoints[nOutsidePointCount++] = tri[0]; }
@@ -74,15 +76,15 @@ namespace GK
             if (nInsidePointCount == 0) return new List<Triangle>();
             if (nInsidePointCount == 1 && nOutsidePointCount == 2)
             {
-                Vec3 v0 = insidePoints[0];
-                Vec3 v1 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[0]);
-                Vec3 v2 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[1]);
+                Vertex3 v0 = insidePoints[0];
+                Vertex3 v1 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[0]);
+                Vertex3 v2 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[1]);
 
-                Triangle t = new Triangle(v0, v1, v2, tri.Color);
+                Triangle t = new Triangle(v0, v1, v2);
                 //swap so normalvectors sign stays the same
                 if (tri.NormalVector.Z * t.NormalVector.Z < 0)
                 {
-                    Vec3 tmp = t[1];
+                    Vertex3 tmp = t[1];
                     t[1] = t[2];
                     t[2] = tmp;
                 }
@@ -93,26 +95,26 @@ namespace GK
             }
             if (nInsidePointCount == 2 && nOutsidePointCount == 1)
             {
-                Vec3 v00 = insidePoints[0];
-                Vec3 v01 = insidePoints[1];
-                Vec3 v02 = GetLineIntersectionWithPlane(planePoint, planeNormal, v00, outsidePoints[0]);
+                Vertex3 v00 = insidePoints[0];
+                Vertex3 v01 = insidePoints[1];
+                Vertex3 v02 = GetLineIntersectionWithPlane(planePoint, planeNormal, v00, outsidePoints[0]);
 
-                Vec3 v10 = insidePoints[1];
-                Vec3 v11 = v02;
-                Vec3 v12 = GetLineIntersectionWithPlane(planePoint, planeNormal, v10, outsidePoints[0]);
+                Vertex3 v10 = insidePoints[1];
+                Vertex3 v11 = v02;
+                Vertex3 v12 = GetLineIntersectionWithPlane(planePoint, planeNormal, v10, outsidePoints[0]);
 
-                Triangle t1 = new Triangle(v00, v01, v02, tri.Color);
-                Triangle t2 = new Triangle(v10, v12, v11, tri.Color);
+                Triangle t1 = new Triangle(v00, v01, v02);
+                Triangle t2 = new Triangle(v10, v12, v11);
                 //swap so normalvectors sign stays the same
                 if (tri.NormalVector.Z * t1.NormalVector.Z < 0)
                 {
-                    Vec3 tmp = t1[1];
+                    Vertex3 tmp = t1[1];
                     t1[1] = t1[2];
                     t1[2] = tmp;
                 }
                 if (tri.NormalVector.Z * t2.NormalVector.Z < 0)
                 {
-                    Vec3 tmp = t2[1];
+                    Vertex3 tmp = t2[1];
                     t2[1] = t2[2];
                     t2[2] = tmp;
                 }
@@ -162,23 +164,24 @@ namespace GK
                 foreach (Triangle triangle in clipped)
                 {
                     //only if visible
-                    if (triangle.NormalVector.Dot(triangle[0]) < 0)
+                    if (triangle.NormalVector.Dot(triangle[0].Position) < 0)
                     {
                         // ILLUMINATION - Lambert
-                        Vec3 lightSource = new Vec3(0, 0, 0);
-                        lightSource = (lightSource / lightSource.W).Normal();
+                        // TODO: 3 POINT COLOR
+                        //Vec3 lightSource = new Vec3(0, 0, 0);
+                        //lightSource = (lightSource / lightSource.W).Normal();
 
-                        Vec3 N = triangle.NormalVector;
-                        Vec3 L = (lightSource - triangle.Center).Normal();
-                        float kd = 0.7f;
-                        float Ip = 1;
-                        float I = Ip * kd * N.Dot(L);
-                        I = (float)Math.Max(I, 0.2f);
-                        Color shadedColor = Mix(triangle.Color, Color.Black, I);
+                        //Vec3 N = triangle.NormalVector;
+                        //Vec3 L = (lightSource - triangle.Center).Normal();
+                        //float kd = 0.7f;
+                        //float Ip = 1;
+                        //float I = Ip * kd * N.Dot(L);
+                        //I = (float)Math.Max(I, 0.2f);
+                        //Color shadedColor = Mix(triangle.Color, Color.Black, I);
 
                         //project and move, and scale into view
                         Triangle t = final * triangle;
-                        t.Color = shadedColor;
+                        //t.Color = shadedColor;
                         //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
                         projected.Add(t);
                     }
@@ -257,85 +260,91 @@ namespace GK
         {
             if(primitiveType == PrimitiveType.Triangles)
             {
-                void fillBottomFlatTriangle(Vec3 v1, Vec3 v2, Vec3 v3, Color color)
+                void fillBottomFlatTriangle(Vertex3 v1, Vertex3 v2, Vertex3 v3)
                 {
-                    float invslope1 = (v2.X - v1.X) / (v2.Y - v1.Y);
-                    float invslope2 = (v3.X - v1.X) / (v3.Y - v1.Y);
+                    float invslope1 = (v2.Position.X - v1.Position.X) / (v2.Position.Y - v1.Position.Y);
+                    float invslope2 = (v3.Position.X - v1.Position.X) / (v3.Position.Y - v1.Position.Y);
 
-                    float curx1 = v1.X;
-                    float curx2 = v1.X;
+                    float curx1 = v1.Position.X;
+                    float curx2 = v1.Position.X;
 
-                    for (int scanlineY = (int)v1.Y; scanlineY <= v2.Y; scanlineY++)
+                    for (int scanlineY = (int)v1.Position.Y; scanlineY <= v2.Position.Y; scanlineY++)
                     {
-                        float z1 = v1.Z + ((float)(scanlineY - v1.Y) / (float)(v2.Y - v1.Y)) * (v2.Z - v1.Z);
-                        float z2 = v1.Z + ((float)(scanlineY - v1.Y) / (float)(v3.Y - v1.Y)) * (v3.Z - v1.Z);
+                        float z1 = v1.Position.Z + ((float)(scanlineY - v1.Position.Y) / (float)(v2.Position.Y - v1.Position.Y)) * (v2.Position.Z - v1.Position.Z);
+                        float z2 = v1.Position.Z + ((float)(scanlineY - v1.Position.Y) / (float)(v3.Position.Y - v1.Position.Y)) * (v3.Position.Z - v1.Position.Z);
+                        Vec4Color c1 = v1.Color + ((float)(scanlineY - v1.Position.Y) / (float)(v2.Position.Y - v1.Position.Y)) * (v2.Color - v1.Color);
+                        Vec4Color c2 = v1.Color + ((float)(scanlineY - v1.Position.Y) / (float)(v3.Position.Y - v1.Position.Y)) * (v3.Color - v1.Color);
                         Vec3 from = new Vec3((float)Math.Round(curx1), scanlineY, z1);
                         Vec3 to = new Vec3((float)Math.Round(curx2), scanlineY, z2);
-                        DrawLine(from, color, to, color);
+                        DrawLine(from, c1, to, c2);
                         curx1 += invslope1;
                         curx2 += invslope2;
                     }
                 }
 
-                void fillTopFlatTriangle(Vec3 v1, Vec3 v2, Vec3 v3, Color color)
+                void fillTopFlatTriangle(Vertex3 v1, Vertex3 v2, Vertex3 v3)
                 {
-                    float invslope1 = (v3.X - v1.X) / (v3.Y - v1.Y);
-                    float invslope2 = (v3.X - v2.X) / (v3.Y - v2.Y);
+                    float invslope1 = (v3.Position.X - v1.Position.X) / (v3.Position.Y - v1.Position.Y);
+                    float invslope2 = (v3.Position.X - v2.Position.X) / (v3.Position.Y - v2.Position.Y);
 
-                    float curx1 = v3.X;
-                    float curx2 = v3.X;
+                    float curx1 = v3.Position.X;
+                    float curx2 = v3.Position.X;
 
-                    for (int scanlineY = (int)v3.Y; scanlineY > v1.Y; scanlineY--)
+                    for (int scanlineY = (int)v3.Position.Y; scanlineY > v1.Position.Y; scanlineY--)
                     {
-                        float z1 = v3.Z + ((float)(scanlineY - v3.Y) / (float)(v1.Y - v3.Y)) * (v1.Z - v3.Z);
-                        float z2 = v3.Z + ((float)(scanlineY - v3.Y) / (float)(v2.Y - v3.Y)) * (v2.Z - v3.Z);
+                        float z1 = v3.Position.Z + ((float)(scanlineY - v3.Position.Y) / (float)(v1.Position.Y - v3.Position.Y)) * (v1.Position.Z - v3.Position.Z);
+                        float z2 = v3.Position.Z + ((float)(scanlineY - v3.Position.Y) / (float)(v2.Position.Y - v3.Position.Y)) * (v2.Position.Z - v3.Position.Z);
                         Vec3 from = new Vec3((float)Math.Round(curx1), scanlineY, z1);
                         Vec3 to = new Vec3((float)Math.Round(curx2), scanlineY, z2);
-                        DrawLine(from, color, to, color);
+                        Vec4Color c1 = v3.Color + ((float)(scanlineY - v3.Position.Y) / (float)(v1.Position.Y - v3.Position.Y)) * (v1.Color - v3.Color);
+                        Vec4Color c2 = v3.Color + ((float)(scanlineY - v3.Position.Y) / (float)(v2.Position.Y - v3.Position.Y)) * (v2.Color - v3.Color);
+                        DrawLine(from, c1, to, c2);
                         curx1 -= invslope1;
                         curx2 -= invslope2;
                     }
                 }
 
 
-                List<Vec3> sortedVecs = new List<Vec3>
+                List<Vertex3> sortedVecs = new List<Vertex3>
                 {
                     triangle[0],
                     triangle[1],
                     triangle[2],
                 };
-                sortedVecs = sortedVecs.OrderBy(i => i.Y).ToList();
-                Vec3 A = sortedVecs[0];
-                Vec3 B = sortedVecs[1];
-                Vec3 C = sortedVecs[2];
+                sortedVecs = sortedVecs.OrderBy(i => i.Position.Y).ToList();
+                Vertex3 A = sortedVecs[0];
+                Vertex3 B = sortedVecs[1];
+                Vertex3 C = sortedVecs[2];
                 //to ints
-                A.X = (int)A.X; A.Y = (int)A.Y;
-                B.X = (int)B.X; B.Y = (int)B.Y;
-                C.X = (int)C.X; C.Y = (int)C.Y;
+                A.Position = new Vec3((int)A.Position.X,(int)A.Position.Y, A.Position.Z);
+                B.Position = new Vec3((int)B.Position.X,(int)B.Position.Y, B.Position.Z);
+                C.Position = new Vec3((int)C.Position.X,(int)C.Position.Y, C.Position.Z);
 
                 /* here we know that v1.y <= v2.y <= v3.y */
                 /* check for trivial case of bottom-flat triangle */
-                if (B.Y == C.Y)
+                if (B.Position.Y == C.Position.Y)
                 {
-                    fillBottomFlatTriangle(A, B, C, triangle.Color);
+                    fillBottomFlatTriangle(A, B, C);
                 }
                 /* check for trivial case of top-flat triangle */
-                else if (A.Y == B.Y)
+                else if (A.Position.Y == B.Position.Y)
                 {
-                    fillTopFlatTriangle(A, B, C, triangle.Color);
+                    fillTopFlatTriangle(A, B, C);
                 }
                 else
                 {
                     /* general case - split the triangle in a topflat and bottom-flat one */
-                    float z = A.Z + ((float)(B.Y - A.Y) / (float)(C.Y - A.Y)) * (C.Z - A.Z);
+                    float z = A.Position.Z + ((float)(B.Position.Y - A.Position.Y) / (float)(C.Position.Y - A.Position.Y)) * (C.Position.Z - A.Position.Z);
+                    Vec4Color c = A.Color + ((float)(B.Position.Y - A.Position.Y) / (float)(C.Position.Y - A.Position.Y)) * (C.Color - A.Color);
                     Vec3 v4 = new Vec3(
-                      (int)(A.X + ((float)(B.Y - A.Y) / (float)(C.Y - A.Y)) * (C.X - A.X)),
-                      B.Y,
+                      (int)(A.Position.X + ((float)(B.Position.Y - A.Position.Y) / (float)(C.Position.Y - A.Position.Y)) * (C.Position.X - A.Position.X)),
+                      B.Position.Y,
                       z
                       );
+                    Vertex3 v = new Vertex3(v4, c);
 
-                    fillBottomFlatTriangle(A, B, v4, triangle.Color);
-                    fillTopFlatTriangle(B, v4, C, triangle.Color);
+                    fillBottomFlatTriangle(A, B, v);
+                    fillTopFlatTriangle(B, v, C);
                 }
 
                 #region barycentric
@@ -386,23 +395,23 @@ namespace GK
                 //DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
                 //DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
                 //DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
-                DrawLine(triangle[0], Color.White, triangle[1], Color.White);
-                DrawLine(triangle[1], Color.White, triangle[2], Color.White);
-                DrawLine(triangle[2], Color.White, triangle[0], Color.White);
+                DrawLine(triangle[0].Position, (Vec4Color)Color.White, triangle[1].Position, (Vec4Color)Color.White);
+                DrawLine(triangle[1].Position, (Vec4Color)Color.White, triangle[2].Position, (Vec4Color)Color.White);
+                DrawLine(triangle[2].Position, (Vec4Color)Color.White, triangle[0].Position, (Vec4Color)Color.White);
             }
         }
 
-        private void DrawPixel(Vec3 pixel, Color color)
+        private void DrawPixel(Vec3 pixel, Vec4Color color)
         {
             int screenX = (int)pixel.X;
             int screenY = (int)pixel.Y;
             if (pixel.Z <= ZBuffer[screenX, screenY])
             {
                 ZBuffer[screenX, screenY] = pixel.Z;
-                Bitmap[screenX, screenY] = color;
+                Bitmap[screenX, screenY] = (Color)color;
             }
         }
-        private void DrawLine(Vec3 from, Color color1, Vec3 to, Color color2)
+        private void DrawLine(Vec3 from, Vec4Color color1, Vec3 to, Vec4Color color2)
         {
             float m;
             if (to.X - from.X != 0) m = (to.Y - from.Y) / (to.X - from.X);
@@ -411,7 +420,7 @@ namespace GK
             {
                 Vec3 start;
                 Vec3 end;
-                Color startColor, endColor;
+                Vec4Color startColor, endColor;
                 if(from.Y < to.Y)
                 {
                     start = from;
@@ -435,7 +444,7 @@ namespace GK
                     float z = start.Z + (end.Z - start.Z) * traverseFraction;
                     
                     Vec3 pixel = new Vec3(x, y, z);
-                    Color finalColor = Mix(startColor, endColor, traverseFraction);
+                    Vec4Color finalColor = startColor * traverseFraction + endColor * (1 - traverseFraction);
                     DrawPixel(pixel,finalColor);
                     x += (to.X - from.X != 0) ? 1 / m : 0;
                 }
@@ -444,7 +453,7 @@ namespace GK
             {
                 Vec3 start;
                 Vec3 end;
-                Color startColor, endColor;
+                Vec4Color startColor, endColor;
                 if (from.X < to.X)
                 {
                     start = from;
@@ -467,7 +476,7 @@ namespace GK
                     float z = start.Z + (end.Z - start.Z) * traverseFraction;
 
                     Vec3 pixel = new Vec3(x, y, z);
-                    Color finalColor = Mix(startColor, endColor, traverseFraction);
+                    Vec4Color finalColor = startColor * traverseFraction + endColor * (1 - traverseFraction);
                     DrawPixel(pixel, finalColor);
                     y += m;
                 }
