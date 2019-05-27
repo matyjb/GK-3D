@@ -47,7 +47,7 @@ namespace GK
             window.MouseWheelScrolled += Window_MouseWheelScrolled;
 
             ///////////
-            
+
             Vec3 v00 = new Vec3(0, 0, 0);
             Vec3 v01 = new Vec3(0, 0, 1);
             Vec3 v02 = new Vec3(0, 1, 0);
@@ -67,6 +67,25 @@ namespace GK
             Vec3 v15 = v05 + secCubeMoved;
             Vec3 v16 = v06 + secCubeMoved;
             Vec3 v17 = v07 + secCubeMoved;
+
+            //special cube with rainbow colors
+            Vec3 v20 = v00 + secCubeMoved / 2;
+            Vec3 v21 = v01 + secCubeMoved / 2;
+            Vec3 v22 = v02 + secCubeMoved / 2;
+            Vec3 v23 = v03 + secCubeMoved / 2;
+            Vec3 v24 = v04 + secCubeMoved / 2;
+            Vec3 v25 = v05 + secCubeMoved / 2;
+            Vec3 v26 = v06 + secCubeMoved / 2;
+            Vec3 v27 = v07 + secCubeMoved / 2;
+
+            Vertex3 vert20 = new Vertex3(v20, (Vec4Color)Color.White);
+            Vertex3 vert21 = new Vertex3(v21, (Vec4Color)Color.Blue);
+            Vertex3 vert22 = new Vertex3(v22, (Vec4Color)Color.Green);
+            Vertex3 vert23 = new Vertex3(v23, (Vec4Color)Color.Cyan);
+            Vertex3 vert24 = new Vertex3(v24, (Vec4Color)Color.Red);
+            Vertex3 vert25 = new Vertex3(v25, (Vec4Color)Color.Magenta);
+            Vertex3 vert26 = new Vertex3(v26, (Vec4Color)Color.Yellow);
+            Vertex3 vert27 = new Vertex3(v27, (Vec4Color)Color.Black);
             Mesh cube1 = new Mesh()
             {
                 // SOUTH
@@ -119,11 +138,38 @@ namespace GK
 		        new Triangle( v15, v11, v10, (Vec4Color)Color.Green ),
                 new Triangle( v15, v10, v14, (Vec4Color)Color.Green ),
             };
+            Mesh cubeRGB = new Mesh()
+            {              
+                // SOUTH                  
+                new Triangle( vert20, vert22, vert26),
+                new Triangle( vert20, vert26, vert24),
+                                          
+		        // EAST                               
+		        new Triangle( vert24, vert26, vert27),
+                new Triangle( vert24, vert27, vert25),
+                                          
+		        // NORTH                              
+		        new Triangle( vert25, vert27, vert23),
+                new Triangle( vert25, vert23, vert21),
+                                          
+		        // WEST                               
+		        new Triangle( vert21, vert23, vert22),
+                new Triangle( vert21, vert22, vert20),
+                                          
+		        // TOP                                
+		        new Triangle( vert22, vert23, vert27),
+                new Triangle( vert22, vert27, vert26),
+                                          
+		        // BOTTOM                             
+		        new Triangle( vert25, vert21, vert20),
+                new Triangle( vert25, vert20, vert24),
+            };
 
             List<Mesh> meshes = new List<Mesh>
             {
                 cube1,
-                cube2
+                cube2,
+                cubeRGB,
             };
 
             ///////////
@@ -144,9 +190,9 @@ namespace GK
                 /////////////////
                 window.Draw(engine);
 
-                if(Options.Instance.ShowHUD)
+                if (Options.Instance.ShowHUD)
                     window.Draw(fpsAmount);
-                if(Options.Instance.ShowAxis)
+                if (Options.Instance.ShowAxis)
                     window.Draw(new AxisIndicator());
                 window.Display();
                 deltaTime = deltaClock.Restart();
