@@ -67,5 +67,10 @@ namespace GK.Math3D
         {
             return new Vector2f(from.X, from.Y);
         }
+
+        public override string ToString()
+        {
+            return $"({X},{Y},{Z},{W})";
+        }
     }
 }

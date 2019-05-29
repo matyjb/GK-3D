@@ -166,19 +166,27 @@ namespace GK
                     //only if visible
                     if (triangle.NormalVector.Dot(triangle[0].Position) < 0)
                     {
-                        // ILLUMINATION - Lambert
-                        Vec3 lightSource = new Vec3(0, 0, 0);
-                        lightSource = (lightSource / lightSource.W).Normal();
+                        // ILLUMINATION - Phong
+                        Vec3 lightSource = Camera.Instance.InverseTransform*new Vec3(-3, 3, -3);
+                        lightSource = lightSource / lightSource.W;
 
                         Vec3 N = triangle.NormalVector;
+                        Vec3 V0 = (Camera.Instance.Position - triangle[0].Position).Normal();
+                        Vec3 V1 = (Camera.Instance.Position - triangle[1].Position).Normal();
+                        Vec3 V2 = (Camera.Instance.Position - triangle[2].Position).Normal();
                         Vec3 L0 = (lightSource - triangle[0].Position).Normal();
                         Vec3 L1 = (lightSource - triangle[1].Position).Normal();
                         Vec3 L2 = (lightSource - triangle[2].Position).Normal();
+                        Vec3 R0 = (-L0-2*N.Dot(-L0)*N).Normal();
+                        Vec3 R1 = (-L1-2*N.Dot(-L1)*N).Normal();
+                        Vec3 R2 = (-L2-2*N.Dot(-L2)*N).Normal();
                         float kd = 1f;
-                        float Ip = 1;
-                        float I0 = Ip * kd * N.Dot(L0);
-                        float I1 = Ip * kd * N.Dot(L1);
-                        float I2 = Ip * kd * N.Dot(L2);
+                        float Ip = 1f;
+                        float ks = 1f;
+                        int n = 10;
+                        float I0 = Ip * (kd * N.Dot(L0)+ks*(float)Math.Pow(V0.Dot(R0),n));
+                        float I1 = Ip * (kd * N.Dot(L1)+ks*(float)Math.Pow(V1.Dot(R1),n));
+                        float I2 = Ip * (kd * N.Dot(L2)+ks*(float)Math.Pow(V2.Dot(R2),n));
                         I0 = (float)Math.Max(I0, 0.2f);
                         I1 = (float)Math.Max(I1, 0.2f);
                         I2 = (float)Math.Max(I2, 0.2f);
