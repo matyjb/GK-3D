@@ -21,12 +21,20 @@ namespace GK
         {
         }
         public List<Mesh> Meshes { get; set; }
-        public Transform GlobalTransform { get; set; }
+        public Transform MatInvCamera { get; set; }
         public Transform Projection { get; set; }
         public RenderWindow Window { get; set; }
 
         private float[,] ZBuffer { get; set; }
         private Color[,] Bitmap { get; set; }
+
+
+        private Vec3 LightSource;
+        private readonly float kd = 1f;
+        private readonly float Ip = 1f;
+        private readonly float ks = 1f;
+        private readonly float n = 10f;
+        
 
 
 
@@ -139,12 +147,20 @@ namespace GK
             //init frame
             ZBuffer = new float[Window.Size.X, Window.Size.Y];
             Bitmap = new Color[Window.Size.X, Window.Size.Y];
+
+            Transform intoViewMoveAndScale = Transform.Identity.Translate(new Vec3(1, 1, 0)).Scale(new Vec3(Window.Size.X / 2, Window.Size.Y / 2, 1));
+            Transform matView = intoViewMoveAndScale * Projection;
+            //light
+            Vec3 lightSource = MatInvCamera * new Vec3(-3, 3, -3);
+            LightSource = lightSource;
+
+            Vector2f l = new Vector2f();
             foreach (Mesh mesh in Meshes)
             {
                 Mesh transformed = new Mesh();
                 foreach (Triangle triangle in mesh)
                 {
-                    transformed.Add(GlobalTransform * triangle);
+                    transformed.Add(MatInvCamera * triangle);
                 }
                 //clip in 3d against camera
                 Mesh clipped = new Mesh();
@@ -156,37 +172,32 @@ namespace GK
                         clipped.Add(item);
                     }
                 }
-                //
+                
 
                 Mesh projected = new Mesh();
-                Transform intoViewMoveAndScale = Transform.Identity.Translate(new Vec3(1, 1, 0)).Scale(new Vec3(Window.Size.X / 2, Window.Size.Y / 2, 1));
-                Transform final = intoViewMoveAndScale * Projection;
                 foreach (Triangle triangle in clipped)
                 {
                     //only if visible
                     if (triangle.NormalVector.Dot(triangle[0].Position) < 0)
                     {
                         // ILLUMINATION - Phong
-                        Vec3 lightSource = Camera.Instance.InverseTransform*new Vec3(-3, 3, -3);
-                        lightSource = lightSource / lightSource.W;
-
                         Vec3 N = triangle.NormalVector;
-                        Vec3 V0 = (Camera.Instance.Position - triangle[0].Position).Normal();
-                        Vec3 V1 = (Camera.Instance.Position - triangle[1].Position).Normal();
-                        Vec3 V2 = (Camera.Instance.Position - triangle[2].Position).Normal();
+                        //camera position (0,0,0) - vertex position (after camerainverese)
+                        Vec3 V0 = (- triangle[0].Position).Normal();
+                        Vec3 V1 = (- triangle[1].Position).Normal();
+                        Vec3 V2 = (- triangle[2].Position).Normal();
                         Vec3 L0 = (lightSource - triangle[0].Position).Normal();
                         Vec3 L1 = (lightSource - triangle[1].Position).Normal();
                         Vec3 L2 = (lightSource - triangle[2].Position).Normal();
-                        Vec3 R0 = (-L0-2*N.Dot(-L0)*N).Normal();
-                        Vec3 R1 = (-L1-2*N.Dot(-L1)*N).Normal();
-                        Vec3 R2 = (-L2-2*N.Dot(-L2)*N).Normal();
-                        float kd = 1f;
-                        float Ip = 1f;
-                        float ks = 1f;
-                        int n = 10;
-                        float I0 = Ip * (kd * N.Dot(L0)+ks*(float)Math.Pow(V0.Dot(R0),n));
-                        float I1 = Ip * (kd * N.Dot(L1)+ks*(float)Math.Pow(V1.Dot(R1),n));
-                        float I2 = Ip * (kd * N.Dot(L2)+ks*(float)Math.Pow(V2.Dot(R2),n));
+                        Vec3 R0 = (-L0 - 2 * N.Dot(-L0) * N).Normal();
+                        Vec3 R1 = (-L1 - 2 * N.Dot(-L1) * N).Normal();
+                        Vec3 R2 = (-L2 - 2 * N.Dot(-L2) * N).Normal();
+                        float I0 = Ip * (kd * N.Dot(L0) + ks * (float)Math.Pow(V0.Dot(R0), n));
+                        float I1 = Ip * (kd * N.Dot(L1) + ks * (float)Math.Pow(V1.Dot(R1), n));
+                        float I2 = Ip * (kd * N.Dot(L2) + ks * (float)Math.Pow(V2.Dot(R2), n));
+                        //float I0 = Ip * (kd * N.Dot(L0) + ks * (float)Math.Pow(N.Dot(L0), n));
+                        //float I1 = Ip * (kd * N.Dot(L1) + ks * (float)Math.Pow(N.Dot(L1), n));
+                        //float I2 = Ip * (kd * N.Dot(L2) + ks * (float)Math.Pow(N.Dot(L2), n));
                         I0 = (float)Math.Max(I0, 0.2f);
                         I1 = (float)Math.Max(I1, 0.2f);
                         I2 = (float)Math.Max(I2, 0.2f);
@@ -195,13 +206,17 @@ namespace GK
                         Vec4Color shadedColor2 = triangle[2].Color * I2;
 
                         //project and move, and scale into view
-                        Vec3 v0 = final * triangle[0].Position;
-                        Vec3 v1 = final * triangle[1].Position;
-                        Vec3 v2 = final * triangle[2].Position;
+                        Vec3 v0 = matView * triangle[0].Position;
+                        Vec3 v1 = matView * triangle[1].Position;
+                        Vec3 v2 = matView * triangle[2].Position;
                         Vertex3 vert0 = new Vertex3(v0, shadedColor0);
                         Vertex3 vert1 = new Vertex3(v1, shadedColor1);
                         Vertex3 vert2 = new Vertex3(v2, shadedColor2);
                         projected.Add(new Triangle(vert0, vert1, vert2));
+
+                        //light source pos
+                        Vec3 lv = matView * lightSource;
+                        l = new Vector2f(lv.X, lv.Y);
 
                         //t.Color = shadedColor;
                         //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
@@ -255,7 +270,7 @@ namespace GK
 
 
                 //draw
-                
+
 
 
                 foreach (Triangle triangle in clipped2D)
@@ -277,6 +292,8 @@ namespace GK
             s.Dispose();
             tex.Dispose();
             img.Dispose();
+            CircleShape c = new CircleShape(5) { Position = l };
+            target.Draw(c);
         }
         private void DrawTriangle(Triangle triangle, PrimitiveType primitiveType)
         {
@@ -298,7 +315,7 @@ namespace GK
                         Vec4Color c2 = v1.Color + ((float)(scanlineY - v1.Position.Y) / (float)(v3.Position.Y - v1.Position.Y)) * (v3.Color - v1.Color);
                         Vec3 from = new Vec3((float)Math.Round(curx1), scanlineY, z1);
                         Vec3 to = new Vec3((float)Math.Round(curx2), scanlineY, z2);
-                        DrawLine(from, c1, to, c2);
+                        DrawTriangleLine(from, c1, to, c2);
                         curx1 += invslope1;
                         curx2 += invslope2;
                     }
@@ -320,7 +337,7 @@ namespace GK
                         Vec3 to = new Vec3((float)Math.Round(curx2), scanlineY, z2);
                         Vec4Color c1 = v3.Color + ((float)(scanlineY - v3.Position.Y) / (float)(v1.Position.Y - v3.Position.Y)) * (v1.Color - v3.Color);
                         Vec4Color c2 = v3.Color + ((float)(scanlineY - v3.Position.Y) / (float)(v2.Position.Y - v3.Position.Y)) * (v2.Color - v3.Color);
-                        DrawLine(from, c1, to, c2);
+                        DrawTriangleLine(from, c1, to, c2);
                         curx1 -= invslope1;
                         curx2 -= invslope2;
                     }
@@ -417,9 +434,9 @@ namespace GK
                 //DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
                 //DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
                 //DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
-                DrawLine(triangle[0].Position, (Vec4Color)Color.White, triangle[1].Position, (Vec4Color)Color.White);
-                DrawLine(triangle[1].Position, (Vec4Color)Color.White, triangle[2].Position, (Vec4Color)Color.White);
-                DrawLine(triangle[2].Position, (Vec4Color)Color.White, triangle[0].Position, (Vec4Color)Color.White);
+                DrawTriangleLine(triangle[0].Position, (Vec4Color)Color.White, triangle[1].Position, (Vec4Color)Color.White);
+                DrawTriangleLine(triangle[1].Position, (Vec4Color)Color.White, triangle[2].Position, (Vec4Color)Color.White);
+                DrawTriangleLine(triangle[2].Position, (Vec4Color)Color.White, triangle[0].Position, (Vec4Color)Color.White);
             }
         }
 
@@ -433,7 +450,7 @@ namespace GK
                 Bitmap[screenX, screenY] = (Color)color;
             }
         }
-        private void DrawLine(Vec3 from, Vec4Color color1, Vec3 to, Vec4Color color2)
+        private void DrawTriangleLine(Vec3 from, Vec4Color color1, Vec3 to, Vec4Color color2)
         {
             float m;
             if (to.X - from.X != 0) m = (to.Y - from.Y) / (to.X - from.X);

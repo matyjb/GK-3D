@@ -182,7 +182,7 @@ namespace GK
                 /////////////////
                 ///rotation and translation
                 engine.Meshes = meshes;
-                engine.GlobalTransform = Camera.Instance.InverseTransform;
+                engine.MatInvCamera = Camera.Instance.InverseTransform;
                 engine.Projection = Camera.Instance.ProjectionTransform;
 
 
