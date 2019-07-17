@@ -78,9 +78,7 @@ namespace GK
             Vec3 v26 = v06 + secCubeMoved / 2;
             Vec3 v27 = v07 + secCubeMoved / 2;
 
-            Vec4Color whiteAlpha = (Vec4Color)Color.White;
-            whiteAlpha.A = 0.0f;
-            Vertex3 vert20 = new Vertex3(v20, whiteAlpha);
+            Vertex3 vert20 = new Vertex3(v20, (Vec4Color)Color.White);
             Vertex3 vert21 = new Vertex3(v21, (Vec4Color)Color.Blue);
             Vertex3 vert22 = new Vertex3(v22, (Vec4Color)Color.Green);
             Vertex3 vert23 = new Vertex3(v23, (Vec4Color)Color.Cyan);

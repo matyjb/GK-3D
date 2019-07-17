@@ -87,5 +87,10 @@ namespace GK.Math3D
             float A = from.A/255f;
             return new Vec4Color(R, G, B, A);
         }
+
+        public override string ToString()
+        {
+            return string.Format("R:{0:0.00},G:{1:0.00},B:{2:0.00},A:{3:0.00}", R,G,B,A);
+        }
     }
 }

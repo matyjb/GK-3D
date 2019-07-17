@@ -34,9 +34,6 @@ namespace GK
         private readonly float ks = 1f;
         private readonly float n = 10f;
 
-
-
-
         private Vertex3 GetLineIntersectionWithPlane(Vec3 planePoint, Vec3 planeNormal, Vertex3 lineStart, Vertex3 lineEnd)
         {
             // to be sure it is normal
@@ -313,7 +310,7 @@ namespace GK
                         Vec4Color c2 = v1.Color + ((float)(scanlineY - v1.Position.Y) / (float)(v3.Position.Y - v1.Position.Y)) * (v3.Color - v1.Color);
                         Vec3 from = new Vec3((float)Math.Round(curx1), scanlineY, z1);
                         Vec3 to = new Vec3((float)Math.Round(curx2), scanlineY, z2);
-                        DrawTriangleLine(from, c1, to, c2);
+                        DrawLine(from.X, from.Z, c1, to.X, to.Z, c2, scanlineY);
                         curx1 += invslope1;
                         curx2 += invslope2;
                     }
@@ -335,12 +332,11 @@ namespace GK
                         Vec3 to = new Vec3((float)Math.Round(curx2), scanlineY, z2);
                         Vec4Color c1 = v3.Color + ((float)(scanlineY - v3.Position.Y) / (float)(v1.Position.Y - v3.Position.Y)) * (v1.Color - v3.Color);
                         Vec4Color c2 = v3.Color + ((float)(scanlineY - v3.Position.Y) / (float)(v2.Position.Y - v3.Position.Y)) * (v2.Color - v3.Color);
-                        DrawTriangleLine(from, c1, to, c2);
+                        DrawLine(from.X,from.Z,c1,to.X,to.Z,c2,scanlineY);
                         curx1 -= invslope1;
                         curx2 -= invslope2;
                     }
                 }
-
 
                 List<Vertex3> sortedVecs = new List<Vertex3>
                 {
@@ -432,9 +428,9 @@ namespace GK
                 //DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
                 //DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
                 //DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
-                DrawTriangleLine(triangle[0].Position, (Vec4Color)Color.White, triangle[1].Position, (Vec4Color)Color.White);
-                DrawTriangleLine(triangle[1].Position, (Vec4Color)Color.White, triangle[2].Position, (Vec4Color)Color.White);
-                DrawTriangleLine(triangle[2].Position, (Vec4Color)Color.White, triangle[0].Position, (Vec4Color)Color.White);
+                DrawLine(triangle[0].Position, (Vec4Color)Color.White, triangle[1].Position, (Vec4Color)Color.White, false);
+                DrawLine(triangle[1].Position, (Vec4Color)Color.White, triangle[2].Position, (Vec4Color)Color.White, false);
+                DrawLine(triangle[2].Position, (Vec4Color)Color.White, triangle[0].Position, (Vec4Color)Color.White, false);
             }
         }
 
@@ -442,13 +438,10 @@ namespace GK
         {
             int screenX = (int)pixel.X;
             int screenY = (int)pixel.Y;
+            if (screenX < 0 || screenX >= Bitmap.GetLength(0)) return;
+            if (screenY < 0 || screenY >= Bitmap.GetLength(1)) return;
             if (pixel.Z <= ZBuffer[screenX, screenY])
             {
-                ////blending
-                //float a = color.A;
-                //Vec4Color b = (Vec4Color)Bitmap[screenX, screenY];
-                //Vec4Color c = color * a + b * (1 - a);
-
                 //drawing
                 ZBuffer[screenX, screenY] = pixel.Z;
                 Bitmap[screenX, screenY] = (Color)color;
@@ -460,236 +453,262 @@ namespace GK
             DrawPixel(new Vec3(pixel.X, pixel.Y, z), color);
         }
 
-        private void DrawLine(Vec3 from, Vec4Color color0, Vec3 to, Vec4Color color1)
+        private void DrawLine(Vec3 from, Vec4Color color0, Vec3 to, Vec4Color color1, bool wu = true)
         {
-            float x0 = from.X;
-            float x1 = to.X;
-            float y0 = from.Y;
-            float y1 = to.Y;
-            float z0 = from.Z;
-            float z1 = to.Z;
-            //help functions
-            int ipart(float x) { return (int)x; }
-            int round(float x) { return ipart(x + 0.5f); }
-            float fpart(float x)
+            if (wu)
             {
-                if (x < 0) return 1 - (x - (float)Math.Floor(x));
-                return x - (float)Math.Floor(x);
+                float x0 = from.X;
+                float x1 = to.X;
+                float y0 = from.Y;
+                float y1 = to.Y;
+                float z0 = from.Z;
+                float z1 = to.Z;
+                //help functions
+                int ipart(float x) { return (int)x; }
+                int round(float x) { return ipart(x + 0.5f); }
+                float fpart(float x)
+                {
+                    if (x < 0) return 1 - (x - (float)Math.Floor(x));
+                    return x - (float)Math.Floor(x);
+                }
+                float rfpart(float x)
+                {
+                    return 1 - fpart(x);
+                }
+                void swap(ref float o1, ref float o2)
+                {
+                    float tmp = o1;
+                    o1 = o2;
+                    o2 = tmp;
+                }
+                //
+                bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
+                if (steep)
+                {
+                    swap(ref x0, ref y0);
+                    swap(ref x1, ref y1);
+                }
+                if (x0 > x1)
+                {
+                    swap(ref x0, ref x1);
+                    swap(ref y0, ref y1);
+                    swap(ref z0, ref z1);
+                }
+
+                float dx = x1 - x0;
+                float dy = y1 - y0;
+                float gradient = dx == 0 ? 1 : dy / dx;
+
+
+                //start point
+                int xEnd = round(x0);
+                float yEnd = y0 + gradient * (xEnd - x0);
+                float xGap = rfpart(x0 + 0.5f);
+                int xPixel1 = xEnd;
+                int yPixel1 = ipart(yEnd);
+
+                //here
+                Vec4Color c0 = color0;
+                Vec4Color c1 = color0;
+                c0.A *= rfpart(yEnd) * xGap;
+                c1.A *= fpart(yEnd) * xGap;
+                if (steep)
+                {
+                    DrawPixel(new Vec3(yPixel1, xPixel1, z0), c0);
+                    DrawPixel(new Vec3(yPixel1 + 1, xPixel1, z0), c1);
+                    //SetPixel(g, yPixel1, xPixel1, c1);
+                    //SetPixel(g, yPixel1 + 1, xPixel1, c2);
+                }
+                else
+                {
+                    DrawPixel(new Vec3(xPixel1, yPixel1, z0), c0);
+                    DrawPixel(new Vec3(xPixel1, yPixel1 + 1, z0), c1);
+                    //SetPixel(g, xPixel1, yPixel1, c1);
+                    //SetPixel(g, xPixel1, yPixel1 + 1, c2);
+                }
+                float intery = yEnd + gradient;
+
+                //end point
+                xEnd = round(x1);
+                yEnd = y1 + gradient * (xEnd - x1);
+                xGap = fpart(x1 + 0.5f);
+                int xPixel2 = xEnd;
+                int yPixel2 = ipart(yEnd);
+
+                ///here
+                c0 = color1;
+                c1 = color1;
+                c0.A *= rfpart(yEnd) * xGap;
+                c1.A *= fpart(yEnd) * xGap;
+                if (steep)
+                {
+                    DrawPixel(new Vec3(yPixel2, xPixel2, z1), c0);
+                    DrawPixel(new Vec3(yPixel2 + 1, xPixel2, z1), c1);
+                    //SetPixel(g, yPixel2, xPixel2, c1);
+                    //SetPixel(g, yPixel2 + 1, xPixel2, c2);
+                }
+                else
+                {
+                    DrawPixel(new Vec3(xPixel2, yPixel2, z1), c0);
+                    DrawPixel(new Vec3(xPixel2, yPixel2 + 1, z1), c1);
+                    //SetPixel(g, xPixel2, yPixel2, c1);
+                    //SetPixel(g, xPixel2, yPixel2 + 1, c2);
+                }
+
+
+                //between
+                if (steep)
+                {
+                    for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
+                    {
+                        ///here
+                        float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
+                        Vec4Color c = (1 - t) * color0 + t * color1;
+                        c0 = c;
+                        c1 = c;
+                        c0.A *= rfpart(intery) * xGap;
+                        c1.A *= fpart(intery) * xGap;
+                        //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
+                        //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
+                        DrawPixel(new Vec3(ipart(intery), x, z1), c0);
+                        DrawPixel(new Vec3(ipart(intery) + 1, x, z1), c1);
+                        //SetPixel(g, ipart(intery), x, c1);
+                        //SetPixel(g, ipart(intery) + 1, x, c2);
+                        intery += gradient;
+                    }
+                }
+                else
+                {
+                    for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
+                    {
+                        ///here
+                        float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
+                        Vec4Color c = (1 - t) * color0 + t * color1;
+                        c0 = c;
+                        c1 = c;
+                        c0.A *= rfpart(intery) * xGap;
+                        c1.A *= fpart(intery) * xGap;
+
+                        //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
+                        //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
+                        DrawPixel(new Vec3(x, ipart(intery), z1), c0);
+                        DrawPixel(new Vec3(x, ipart(intery) + 1, z1), c1);
+
+                        //SetPixel(g, x, ipart(intery), c1);
+                        //SetPixel(g, x, ipart(intery) + 1, c2);
+                        intery += gradient;
+                    }
+                }
             }
-            float rfpart(float x)
+            else
             {
-                return 1 - fpart(x);
+                float m;
+                if (to.X - from.X != 0) m = (to.Y - from.Y) / (to.X - from.X);
+                else m = to.Y - from.Y;
+                if (Math.Abs(m) >= 1)
+                {
+                    Vec3 start;
+                    Vec3 end;
+                    Vec4Color startColor, endColor;
+                    if (from.Y < to.Y)
+                    {
+                        start = from;
+                        end = to;
+                        startColor = color0;
+                        endColor = color1;
+                    }
+                    else
+                    {
+                        start = to;
+                        end = from;
+                        startColor = color1;
+                        endColor = color0;
+                    }
+
+
+                    float x = start.X;
+                    for (float y = start.Y; y <= end.Y; y++)
+                    {
+                        float traverseFraction = (end.Y - y) / (end.Y - start.Y);
+                        float z = start.Z + (end.Z - start.Z) * traverseFraction;
+
+                        Vec3 pixel = new Vec3(x, y, z);
+                        Vec4Color finalColor = startColor * traverseFraction + endColor * (1 - traverseFraction);
+                        DrawPixel(pixel, finalColor);
+                        x += (to.X - from.X != 0) ? 1 / m : 0;
+                    }
+                }
+                else
+                {
+                    Vec3 start;
+                    Vec3 end;
+                    Vec4Color startColor, endColor;
+                    if (from.X < to.X)
+                    {
+                        start = from;
+                        end = to;
+                        startColor = color0;
+                        endColor = color1;
+                    }
+                    else
+                    {
+                        start = to;
+                        end = from;
+                        startColor = color1;
+                        endColor = color0;
+                    }
+
+                    float y = start.Y;
+                    for (float x = start.X; x <= end.X; x++)
+                    {
+                        float traverseFraction = (end.X - x) / (end.X - start.X);
+                        float z = start.Z + (end.Z - start.Z) * traverseFraction;
+
+                        Vec3 pixel = new Vec3(x, y, z);
+                        Vec4Color finalColor = startColor * traverseFraction + endColor * (1 - traverseFraction);
+                        DrawPixel(pixel, finalColor);
+                        y += m;
+                    }
+                }
             }
-            void swap(ref float o1, ref float o2)
+        }
+        private void DrawLine(float fromX, float fromZ, Vec4Color color0, float toX, float toZ, Vec4Color color1, int y)
+        {
+            void swapInts(ref int o1, ref int o2)
+            {
+                int tmp = o1;
+                o1 = o2;
+                o2 = tmp;
+            }
+            void swapFloats(ref float o1, ref float o2)
             {
                 float tmp = o1;
                 o1 = o2;
                 o2 = tmp;
             }
-            //
-            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
-            if (steep)
+            void swapColors(ref Vec4Color o1, ref Vec4Color o2)
             {
-                swap(ref x0, ref y0);
-                swap(ref x1, ref y1);
+                Vec4Color tmp = o1;
+                o1 = o2;
+                o2 = tmp;
             }
-            if (x0 > x1)
+            int rFromX = (int)Math.Round(fromX);
+            int rToX = (int)Math.Round(toX);
+            
+            if(rFromX > rToX)
             {
-                swap(ref x0, ref x1);
-                swap(ref y0, ref y1);
-                swap(ref z0, ref z1);
+                swapInts(ref rFromX, ref rToX);
+                swapFloats(ref fromZ, ref toZ);
+                swapColors(ref color0, ref color1);
             }
-
-            float dx = x1 - x0;
-            float dy = y1 - y0;
-            float gradient = dx == 0 ? 1 : dy / dx;
-
-
-            //start point
-            int xEnd = round(x0);
-            float yEnd = y0 + gradient * (xEnd - x0);
-            float xGap = rfpart(x0 + 0.5f);
-            int xPixel1 = xEnd;
-            int yPixel1 = ipart(yEnd);
-
-            //here
-            Vec4Color c0 = color0;
-            Vec4Color c1 = color0;
-            c0.A *= rfpart(yEnd) * xGap;
-            c1.A *= fpart(yEnd) * xGap;
-            Console.WriteLine(c0);
-            Console.WriteLine(c1);
-            if (steep)
+            for (int x = rFromX; x <= rToX; x++)
             {
-                DrawPixel(new Vec3(yPixel1, xPixel1, z0), c0);
-                DrawPixel(new Vec3(yPixel1 + 1, xPixel1, z0), c1);
-                //SetPixel(g, yPixel1, xPixel1, c1);
-                //SetPixel(g, yPixel1 + 1, xPixel1, c2);
+                Vec2 v = new Vec2(x, y);
+                float t = (rFromX == rToX) ? 0.5f : (x - rFromX) / (float)(rToX - rFromX);
+                Vec4Color c = (1 - t) * color0 + t * color1;
+                float z = (1 - t) * fromZ + t * toZ;
+                DrawPixel(v, z, c);
             }
-            else
-            {
-                DrawPixel(new Vec3(xPixel1, yPixel1, z0), c0);
-                DrawPixel(new Vec3(xPixel1, yPixel1 + 1, z0), c1);
-                //SetPixel(g, xPixel1, yPixel1, c1);
-                //SetPixel(g, xPixel1, yPixel1 + 1, c2);
-            }
-            float intery = yEnd + gradient;
-
-            //end point
-            xEnd = round(x1);
-            yEnd = y1 + gradient * (xEnd - x1);
-            xGap = fpart(x1 + 0.5f);
-            int xPixel2 = xEnd;
-            int yPixel2 = ipart(yEnd);
-
-            ///here
-            c0 = color1;
-            c1 = color1;
-            c0.A *= rfpart(yEnd) * xGap;
-            c1.A *= fpart(yEnd) * xGap;
-            if (steep)
-            {
-                DrawPixel(new Vec3(yPixel2, xPixel2, z1), c0);
-                DrawPixel(new Vec3(yPixel2 + 1, xPixel2, z1), c1);
-                //SetPixel(g, yPixel2, xPixel2, c1);
-                //SetPixel(g, yPixel2 + 1, xPixel2, c2);
-            }
-            else
-            {
-                DrawPixel(new Vec3(xPixel2, yPixel2, z1), c0);
-                DrawPixel(new Vec3(xPixel2, yPixel2 + 1, z1), c1);
-                //SetPixel(g, xPixel2, yPixel2, c1);
-                //SetPixel(g, xPixel2, yPixel2 + 1, c2);
-            }
-
-
-            //between
-            if (steep)
-            {
-                for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
-                {
-                    ///here
-                    float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
-                    Vec4Color c = (1 - t) * color0 + t * color1;
-                    c0 = c;
-                    c1 = c;
-                    c0.A *= rfpart(intery) * xGap;
-                    c1.A *= fpart(intery) * xGap;
-                    //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
-                    //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
-                    DrawPixel(new Vec3(ipart(intery), x, z1), c0);
-                    DrawPixel(new Vec3(ipart(intery) + 1, x, z1), c1);
-                    //SetPixel(g, ipart(intery), x, c1);
-                    //SetPixel(g, ipart(intery) + 1, x, c2);
-                    intery += gradient;
-                }
-            }
-            else
-            {
-                for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
-                {
-                    ///here
-                    float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
-                    Vec4Color c = (1 - t) * color0 + t * color1;
-                    c0 = c;
-                    c1 = c;
-                    c0.A *= rfpart(intery) * xGap;
-                    c1.A *= fpart(intery) * xGap;
-
-                    //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
-                    //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
-                    DrawPixel(new Vec3(x, ipart(intery), z1), c0);
-                    DrawPixel(new Vec3(x, ipart(intery) + 1, z1), c1);
-
-                    //SetPixel(g, x, ipart(intery), c1);
-                    //SetPixel(g, x, ipart(intery) + 1, c2);
-                    intery += gradient;
-                }
-            }
-        }
-        private void DrawTriangleLine(Vec3 from, Vec4Color color1, Vec3 to, Vec4Color color2)
-        {
-            float m;
-            if (to.X - from.X != 0) m = (to.Y - from.Y) / (to.X - from.X);
-            else m = to.Y - from.Y;
-            if (Math.Abs(m) >= 1)
-            {
-                Vec3 start;
-                Vec3 end;
-                Vec4Color startColor, endColor;
-                if(from.Y < to.Y)
-                {
-                    start = from;
-                    end = to;
-                    startColor = color1;
-                    endColor = color2;
-                }
-                else
-                {
-                    start = to;
-                    end = from;
-                    startColor = color2;
-                    endColor = color1;
-                }
-
-
-                float x = start.X;
-                for (float y = start.Y; y <= end.Y; y++)
-                {
-                    float traverseFraction = (end.Y - y) / (end.Y - start.Y);
-                    float z = start.Z + (end.Z - start.Z) * traverseFraction;
-                    
-                    Vec3 pixel = new Vec3(x, y, z);
-                    Vec4Color finalColor = startColor * traverseFraction + endColor * (1 - traverseFraction);
-                    DrawPixel(pixel,finalColor);
-                    x += (to.X - from.X != 0) ? 1 / m : 0;
-                }
-            }
-            else
-            {
-                Vec3 start;
-                Vec3 end;
-                Vec4Color startColor, endColor;
-                if (from.X < to.X)
-                {
-                    start = from;
-                    end = to;
-                    startColor = color1;
-                    endColor = color2;
-                }
-                else
-                {
-                    start = to;
-                    end = from;
-                    startColor = color2;
-                    endColor = color1;
-                }
-
-                float y = start.Y;
-                for (float x = start.X; x <= end.X; x++)
-                {
-                    float traverseFraction = (end.X - x) / (end.X - start.X);
-                    float z = start.Z + (end.Z - start.Z) * traverseFraction;
-
-                    Vec3 pixel = new Vec3(x, y, z);
-                    Vec4Color finalColor = startColor * traverseFraction + endColor * (1 - traverseFraction);
-                    DrawPixel(pixel, finalColor);
-                    y += m;
-                }
-            }
-        }
-        private Color Mix(Color c1, Color c2, float fraction)
-        {
-            float r = c1.R * fraction + c2.R * (1 - fraction);
-            float g = c1.G * fraction + c2.G * (1 - fraction);
-            float b = c1.B * fraction + c2.B * (1 - fraction);
-            float a = c1.A * fraction + c2.A * (1 - fraction);
-            r = Math.Min(255, Math.Max(r, 0));
-            g = Math.Min(255, Math.Max(g, 0));
-            b = Math.Min(255, Math.Max(b, 0));
-            a = Math.Min(255, Math.Max(a, 0));
-
-            return new Color((byte)r, (byte)g, (byte)b, (byte)a);
         }
     }
 }
