@@ -57,35 +57,15 @@ namespace GK
             Vec3 v06 = new Vec3(1, 1, 0);
             Vec3 v07 = new Vec3(1, 1, 1);
 
-            Vec3 secCubeMoved = new Vec3(2, 2, 3);
 
-            Vec3 v10 = v00 + secCubeMoved;
-            Vec3 v11 = v01 + secCubeMoved;
-            Vec3 v12 = v02 + secCubeMoved;
-            Vec3 v13 = v03 + secCubeMoved;
-            Vec3 v14 = v04 + secCubeMoved;
-            Vec3 v15 = v05 + secCubeMoved;
-            Vec3 v16 = v06 + secCubeMoved;
-            Vec3 v17 = v07 + secCubeMoved;
-
-            //special cube with rainbow colors
-            Vec3 v20 = v00 + secCubeMoved / 2;
-            Vec3 v21 = v01 + secCubeMoved / 2;
-            Vec3 v22 = v02 + secCubeMoved / 2;
-            Vec3 v23 = v03 + secCubeMoved / 2;
-            Vec3 v24 = v04 + secCubeMoved / 2;
-            Vec3 v25 = v05 + secCubeMoved / 2;
-            Vec3 v26 = v06 + secCubeMoved / 2;
-            Vec3 v27 = v07 + secCubeMoved / 2;
-
-            Vertex3 vert20 = new Vertex3(v20, (Vec4Color)Color.White);
-            Vertex3 vert21 = new Vertex3(v21, (Vec4Color)Color.Blue);
-            Vertex3 vert22 = new Vertex3(v22, (Vec4Color)Color.Green);
-            Vertex3 vert23 = new Vertex3(v23, (Vec4Color)Color.Cyan);
-            Vertex3 vert24 = new Vertex3(v24, (Vec4Color)Color.Red);
-            Vertex3 vert25 = new Vertex3(v25, (Vec4Color)Color.Magenta);
-            Vertex3 vert26 = new Vertex3(v26, (Vec4Color)Color.Yellow);
-            Vertex3 vert27 = new Vertex3(v27, (Vec4Color)Color.Black);
+            Vertex3 vert20 = new Vertex3(v00, (Vec4Color)Color.White);
+            Vertex3 vert21 = new Vertex3(v01, (Vec4Color)Color.Blue);
+            Vertex3 vert22 = new Vertex3(v02, (Vec4Color)Color.Green);
+            Vertex3 vert23 = new Vertex3(v03, (Vec4Color)Color.Cyan);
+            Vertex3 vert24 = new Vertex3(v04, (Vec4Color)Color.Red);
+            Vertex3 vert25 = new Vertex3(v05, (Vec4Color)Color.Magenta);
+            Vertex3 vert26 = new Vertex3(v06, (Vec4Color)Color.Yellow);
+            Vertex3 vert27 = new Vertex3(v07, (Vec4Color)Color.Black);
             Mesh cube1 = new Mesh()
             {
                 // SOUTH
@@ -115,28 +95,28 @@ namespace GK
             Mesh cube2 = new Mesh()
             {              
                 // SOUTH                  
-                new Triangle( v10, v12, v16, (Vec4Color)Color.Blue ),
-                new Triangle( v10, v16, v14, (Vec4Color)Color.Blue ),
+                new Triangle( v00, v02, v06, (Vec4Color)Color.Blue ),
+                new Triangle( v00, v06, v04, (Vec4Color)Color.Blue ),
                                           
 		        // EAST                                                      
-		        new Triangle( v14, v16, v17, (Vec4Color)Color.Red ),
-                new Triangle( v14, v17, v15, (Vec4Color)Color.Red ),
+		        new Triangle( v04, v06, v07, (Vec4Color)Color.Red ),
+                new Triangle( v04, v07, v05, (Vec4Color)Color.Red ),
                                           
 		        // NORTH                                                     
-		        new Triangle( v15, v17, v13, (Vec4Color)Color.Blue ),
-                new Triangle( v15, v13, v11, (Vec4Color)Color.Blue ),
+		        new Triangle( v05, v07, v03, (Vec4Color)Color.Blue ),
+                new Triangle( v05, v03, v01, (Vec4Color)Color.Blue ),
                                           
 		        // WEST                                                      
-		        new Triangle( v11, v13, v12, (Vec4Color)Color.Red ),
-                new Triangle( v11, v12, v10, (Vec4Color)Color.Red ),
+		        new Triangle( v01, v03, v02, (Vec4Color)Color.Red ),
+                new Triangle( v01, v02, v00, (Vec4Color)Color.Red ),
                                           
 		        // TOP                                                       
-		        new Triangle( v12, v13, v17, (Vec4Color)Color.Green ),
-                new Triangle( v12, v17, v16, (Vec4Color)Color.Green ),
+		        new Triangle( v02, v03, v07, (Vec4Color)Color.Green ),
+                new Triangle( v02, v07, v06, (Vec4Color)Color.Green ),
                                           
 		        // BOTTOM                                                    
-		        new Triangle( v15, v11, v10, (Vec4Color)Color.Green ),
-                new Triangle( v15, v10, v14, (Vec4Color)Color.Green ),
+		        new Triangle( v05, v01, v00, (Vec4Color)Color.Green ),
+                new Triangle( v05, v00, v04, (Vec4Color)Color.Green ),
             };
             Mesh cubeRGB = new Mesh()
             {              
@@ -165,6 +145,15 @@ namespace GK
                 new Triangle( vert25, vert20, vert24),
             };
 
+            cube1.Origin = new Vec3(0.5f, 0.5f, 0.5f);
+            cube2.Origin = new Vec3(0.5f, 0.5f, 0.5f);
+            cubeRGB.Origin = new Vec3(0.5f, 0.5f, 0.5f);
+
+            Vec3 moveV = new Vec3(2, 2, 3);
+            cube2.Position = moveV;
+            cube2.Scale = new Vec3(1.5f,1.5f,1.5f);
+            cubeRGB.Position = moveV / 2;
+
             List<Mesh> meshes = new List<Mesh>
             {
                 cube1,
@@ -181,6 +170,11 @@ namespace GK
                 window.Clear();
                 /////////////////
                 ///rotation and translation
+                //rotation cube2
+                Vec3 v = new Vec3(1 / 2f, 1 / 3f, 1 / 4f) * (float)Math.PI * deltaTime.AsSeconds();
+                cube1.Rotation += v;
+
+
                 engine.Meshes = meshes;
                 engine.MatInvCamera = Camera.Instance.InverseTransform;
                 engine.Projection = Camera.Instance.ProjectionTransform;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GK.Math3D
 {
-    public class Mesh : IEnumerable<Triangle>
+    public class Mesh : Transformable, IEnumerable<Triangle>
     {
         public List<Triangle> Triangles { get; set; } = new List<Triangle>();
 

@@ -152,10 +152,11 @@ namespace GK
             Vector2f l = new Vector2f();
             foreach (Mesh mesh in Meshes)
             {
+                Transform matMesh = mesh.Transform;
                 Mesh transformed = new Mesh();
                 foreach (Triangle triangle in mesh)
                 {
-                    transformed.Add(MatInvCamera * triangle);
+                    transformed.Add(MatInvCamera * matMesh * triangle);
                 }
                 //clip in 3d against camera
                 Mesh clipped = new Mesh();
