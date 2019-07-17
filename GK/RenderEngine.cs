@@ -29,12 +29,11 @@ namespace GK
         private Color[,] Bitmap { get; set; }
 
 
-        private Vec3 LightSource;
         private readonly float kd = 1f;
         private readonly float Ip = 1f;
         private readonly float ks = 1f;
         private readonly float n = 10f;
-        
+
 
 
 
@@ -152,7 +151,6 @@ namespace GK
             Transform matView = intoViewMoveAndScale * Projection;
             //light
             Vec3 lightSource = MatInvCamera * new Vec3(-3, 3, -3);
-            LightSource = lightSource;
 
             Vector2f l = new Vector2f();
             foreach (Mesh mesh in Meshes)
@@ -172,7 +170,7 @@ namespace GK
                         clipped.Add(item);
                     }
                 }
-                
+
 
                 Mesh projected = new Mesh();
                 foreach (Triangle triangle in clipped)
@@ -183,9 +181,9 @@ namespace GK
                         // ILLUMINATION - Phong
                         Vec3 N = triangle.NormalVector;
                         //camera position (0,0,0) - vertex position (after camerainverese)
-                        Vec3 V0 = (- triangle[0].Position).Normal();
-                        Vec3 V1 = (- triangle[1].Position).Normal();
-                        Vec3 V2 = (- triangle[2].Position).Normal();
+                        Vec3 V0 = (-triangle[0].Position).Normal();
+                        Vec3 V1 = (-triangle[1].Position).Normal();
+                        Vec3 V2 = (-triangle[2].Position).Normal();
                         Vec3 L0 = (lightSource - triangle[0].Position).Normal();
                         Vec3 L1 = (lightSource - triangle[1].Position).Normal();
                         Vec3 L2 = (lightSource - triangle[2].Position).Normal();
@@ -297,7 +295,7 @@ namespace GK
         }
         private void DrawTriangle(Triangle triangle, PrimitiveType primitiveType)
         {
-            if(primitiveType == PrimitiveType.Triangles)
+            if (primitiveType == PrimitiveType.Triangles)
             {
                 void fillBottomFlatTriangle(Vertex3 v1, Vertex3 v2, Vertex3 v3)
                 {
@@ -355,9 +353,9 @@ namespace GK
                 Vertex3 B = sortedVecs[1];
                 Vertex3 C = sortedVecs[2];
                 //to ints
-                A.Position = new Vec3((int)A.Position.X,(int)A.Position.Y, A.Position.Z);
-                B.Position = new Vec3((int)B.Position.X,(int)B.Position.Y, B.Position.Z);
-                C.Position = new Vec3((int)C.Position.X,(int)C.Position.Y, C.Position.Z);
+                A.Position = new Vec3((int)A.Position.X, (int)A.Position.Y, A.Position.Z);
+                B.Position = new Vec3((int)B.Position.X, (int)B.Position.Y, B.Position.Z);
+                C.Position = new Vec3((int)C.Position.X, (int)C.Position.Y, C.Position.Z);
 
                 /* here we know that v1.y <= v2.y <= v3.y */
                 /* check for trivial case of bottom-flat triangle */
@@ -446,8 +444,167 @@ namespace GK
             int screenY = (int)pixel.Y;
             if (pixel.Z <= ZBuffer[screenX, screenY])
             {
+                //blending
+                float a = color.A;
+                Vec4Color b = (Vec4Color)Bitmap[screenX, screenY];
+                Vec4Color c = color * a + b * (1 - a);
+
+                //drawing
                 ZBuffer[screenX, screenY] = pixel.Z;
-                Bitmap[screenX, screenY] = (Color)color;
+                Bitmap[screenX, screenY] = (Color)c;
+            }
+        }
+
+        private void DrawPixel(Vec2 pixel, float z, Vec4Color color)
+        {
+            DrawPixel(new Vec3(pixel.X, pixel.Y, z), color);
+        }
+
+        private void DrawLine(Vec3 from, Vec4Color color0, Vec3 to, Vec4Color color1)
+        {
+            float x0 = from.X;
+            float x1 = to.X;
+            float y0 = from.Y;
+            float y1 = to.Y;
+            float z0 = from.Z;
+            float z1 = to.Z;
+            //help functions
+            int ipart(float x) { return (int)x; }
+            int round(float x) { return ipart(x + 0.5f); }
+            float fpart(float x)
+            {
+                if (x < 0) return 1 - (x - (float)Math.Floor(x));
+                return x - (float)Math.Floor(x);
+            }
+            float rfpart(float x)
+            {
+                return 1 - fpart(x);
+            }
+            void swap(ref float o1, ref float o2)
+            {
+                float tmp = o1;
+                o1 = o2;
+                o2 = tmp;
+            }
+            //
+            bool steep = Math.Abs(y1 - y0) > Math.Abs(x1 - x0);
+            if (steep)
+            {
+                swap(ref x0, ref y0);
+                swap(ref x1, ref y1);
+            }
+            if (x0 > x1)
+            {
+                swap(ref x0, ref x1);
+                swap(ref y0, ref y1);
+                swap(ref z0, ref z1);
+            }
+
+            float dx = x1 - x0;
+            float dy = y1 - y0;
+            float gradient = dx == 0 ? 1 : dy / dx;
+
+
+            //start point
+            int xEnd = round(x0);
+            float yEnd = y0 + gradient * (xEnd - x0);
+            float xGap = rfpart(x0 + 0.5f);
+            int xPixel1 = xEnd;
+            int yPixel1 = ipart(yEnd);
+
+            //here
+            Vec4Color c0 = color0;
+            Vec4Color c1 = color0;
+            c0.A *= rfpart(yEnd) * xGap;
+            c1.A *= fpart(yEnd) * xGap;
+            Console.WriteLine(c0);
+            Console.WriteLine(c1);
+            if (steep)
+            {
+                DrawPixel(new Vec3(yPixel1, xPixel1, z0), c0);
+                DrawPixel(new Vec3(yPixel1 + 1, xPixel1, z0), c1);
+                //SetPixel(g, yPixel1, xPixel1, c1);
+                //SetPixel(g, yPixel1 + 1, xPixel1, c2);
+            }
+            else
+            {
+                DrawPixel(new Vec3(xPixel1, yPixel1, z0), c0);
+                DrawPixel(new Vec3(xPixel1, yPixel1 + 1, z0), c1);
+                //SetPixel(g, xPixel1, yPixel1, c1);
+                //SetPixel(g, xPixel1, yPixel1 + 1, c2);
+            }
+            float intery = yEnd + gradient;
+
+            //end point
+            xEnd = round(x1);
+            yEnd = y1 + gradient * (xEnd - x1);
+            xGap = fpart(x1 + 0.5f);
+            int xPixel2 = xEnd;
+            int yPixel2 = ipart(yEnd);
+
+            ///here
+            c0 = color1;
+            c1 = color1;
+            c0.A *= rfpart(yEnd) * xGap;
+            c1.A *= fpart(yEnd) * xGap;
+            if (steep)
+            {
+                DrawPixel(new Vec3(yPixel2, xPixel2, z1), c0);
+                DrawPixel(new Vec3(yPixel2 + 1, xPixel2, z1), c1);
+                //SetPixel(g, yPixel2, xPixel2, c1);
+                //SetPixel(g, yPixel2 + 1, xPixel2, c2);
+            }
+            else
+            {
+                DrawPixel(new Vec3(xPixel2, yPixel2, z1), c0);
+                DrawPixel(new Vec3(xPixel2, yPixel2 + 1, z1), c1);
+                //SetPixel(g, xPixel2, yPixel2, c1);
+                //SetPixel(g, xPixel2, yPixel2 + 1, c2);
+            }
+
+
+            //between
+            if (steep)
+            {
+                for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
+                {
+                    ///here
+                    float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
+                    Vec4Color c = (1 - t) * color0 + t * color1;
+                    c0 = c;
+                    c1 = c;
+                    c0.A *= rfpart(intery) * xGap;
+                    c1.A *= fpart(intery) * xGap;
+                    //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
+                    //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
+                    DrawPixel(new Vec3(ipart(intery), x, z1), c0);
+                    DrawPixel(new Vec3(ipart(intery) + 1, x, z1), c1);
+                    //SetPixel(g, ipart(intery), x, c1);
+                    //SetPixel(g, ipart(intery) + 1, x, c2);
+                    intery += gradient;
+                }
+            }
+            else
+            {
+                for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
+                {
+                    ///here
+                    float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
+                    Vec4Color c = (1 - t) * color0 + t * color1;
+                    c0 = c;
+                    c1 = c;
+                    c0.A *= rfpart(intery) * xGap;
+                    c1.A *= fpart(intery) * xGap;
+
+                    //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
+                    //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
+                    DrawPixel(new Vec3(x, ipart(intery), z1), c0);
+                    DrawPixel(new Vec3(x, ipart(intery) + 1, z1), c1);
+
+                    //SetPixel(g, x, ipart(intery), c1);
+                    //SetPixel(g, x, ipart(intery) + 1, c2);
+                    intery += gradient;
+                }
             }
         }
         private void DrawTriangleLine(Vec3 from, Vec4Color color1, Vec3 to, Vec4Color color2)
@@ -527,14 +684,10 @@ namespace GK
             float g = c1.G * fraction + c2.G * (1 - fraction);
             float b = c1.B * fraction + c2.B * (1 - fraction);
             float a = c1.A * fraction + c2.A * (1 - fraction);
-            r = Math.Max(r, 0);
-            g = Math.Max(g, 0);
-            b = Math.Max(b, 0);
-            a = Math.Max(a, 0);
-            r = Math.Min(r, 255);
-            g = Math.Min(g, 255);
-            b = Math.Min(b, 255);
-            a = Math.Min(a, 255);
+            r = Math.Min(255, Math.Max(r, 0));
+            g = Math.Min(255, Math.Max(g, 0));
+            b = Math.Min(255, Math.Max(b, 0));
+            a = Math.Min(255, Math.Max(a, 0));
 
             return new Color((byte)r, (byte)g, (byte)b, (byte)a);
         }
