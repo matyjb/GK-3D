@@ -444,14 +444,14 @@ namespace GK
             int screenY = (int)pixel.Y;
             if (pixel.Z <= ZBuffer[screenX, screenY])
             {
-                //blending
-                float a = color.A;
-                Vec4Color b = (Vec4Color)Bitmap[screenX, screenY];
-                Vec4Color c = color * a + b * (1 - a);
+                ////blending
+                //float a = color.A;
+                //Vec4Color b = (Vec4Color)Bitmap[screenX, screenY];
+                //Vec4Color c = color * a + b * (1 - a);
 
                 //drawing
                 ZBuffer[screenX, screenY] = pixel.Z;
-                Bitmap[screenX, screenY] = (Color)c;
+                Bitmap[screenX, screenY] = (Color)color;
             }
         }
 
