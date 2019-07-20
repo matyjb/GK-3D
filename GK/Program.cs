@@ -173,6 +173,8 @@ namespace GK
                 //rotation cube2
                 Vec3 v = new Vec3(1 / 2f, 1 / 3f, 1 / 4f) * (float)Math.PI * deltaTime.AsSeconds();
                 cube1.Rotation += v;
+                cube2.Rotation -= v;
+                cubeRGB.Rotation += v/2;
 
 
                 engine.Meshes = meshes;

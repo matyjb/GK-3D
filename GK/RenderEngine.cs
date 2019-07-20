@@ -4,8 +4,6 @@ using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Transform = GK.Math3D.Transform;
 
 namespace GK
@@ -16,7 +14,6 @@ namespace GK
         static RenderEngine()
         {
         }
-
         private RenderEngine()
         {
         }
@@ -29,10 +26,7 @@ namespace GK
         private Color[,] Bitmap { get; set; }
 
 
-        private readonly float kd = 1f;
         private readonly float Ip = 1f;
-        private readonly float ks = 1f;
-        private readonly float n = 10f;
 
         private Vertex3 GetLineIntersectionWithPlane(Vec3 planePoint, Vec3 planeNormal, Vertex3 lineStart, Vertex3 lineEnd)
         {
@@ -84,7 +78,7 @@ namespace GK
                 Vertex3 v1 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[0]);
                 Vertex3 v2 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[1]);
 
-                Triangle t = new Triangle(v0, v1, v2);
+                Triangle t = new Triangle(tri) { v0 = v0, v1 = v1, v2 = v2 };
                 //swap so normalvectors sign stays the same
                 if (tri.NormalVector.Z * t.NormalVector.Z < 0)
                 {
@@ -107,8 +101,8 @@ namespace GK
                 Vertex3 v11 = v02;
                 Vertex3 v12 = GetLineIntersectionWithPlane(planePoint, planeNormal, v10, outsidePoints[0]);
 
-                Triangle t1 = new Triangle(v00, v01, v02);
-                Triangle t2 = new Triangle(v10, v12, v11);
+                Triangle t1 = new Triangle(tri) { v0 = v00, v1 = v01, v2 = v02 };
+                Triangle t2 = new Triangle(tri) { v0 = v10, v1 = v11, v2 = v12 };
                 //swap so normalvectors sign stays the same
                 if (tri.NormalVector.Z * t1.NormalVector.Z < 0)
                 {
@@ -178,6 +172,9 @@ namespace GK
                     {
                         // ILLUMINATION - Phong
                         Vec3 N = triangle.NormalVector;
+                        float kd = triangle.kd;
+                        float ks = triangle.ks;
+                        float n = triangle.n;
                         //camera position (0,0,0) - vertex position (after camerainverese)
                         Vec3 V0 = (-triangle[0].Position).Normal();
                         Vec3 V1 = (-triangle[1].Position).Normal();
@@ -191,9 +188,6 @@ namespace GK
                         float I0 = Ip * (kd * N.Dot(L0) + ks * (float)Math.Pow(V0.Dot(R0), n));
                         float I1 = Ip * (kd * N.Dot(L1) + ks * (float)Math.Pow(V1.Dot(R1), n));
                         float I2 = Ip * (kd * N.Dot(L2) + ks * (float)Math.Pow(V2.Dot(R2), n));
-                        //float I0 = Ip * (kd * N.Dot(L0) + ks * (float)Math.Pow(N.Dot(L0), n));
-                        //float I1 = Ip * (kd * N.Dot(L1) + ks * (float)Math.Pow(N.Dot(L1), n));
-                        //float I2 = Ip * (kd * N.Dot(L2) + ks * (float)Math.Pow(N.Dot(L2), n));
                         I0 = (float)Math.Max(I0, 0.2f);
                         I1 = (float)Math.Max(I1, 0.2f);
                         I2 = (float)Math.Max(I2, 0.2f);
@@ -208,7 +202,7 @@ namespace GK
                         Vertex3 vert0 = new Vertex3(v0, shadedColor0);
                         Vertex3 vert1 = new Vertex3(v1, shadedColor1);
                         Vertex3 vert2 = new Vertex3(v2, shadedColor2);
-                        projected.Add(new Triangle(vert0, vert1, vert2));
+                        projected.Add(new Triangle(triangle) { v0 = vert0, v1 = vert1, v2 = vert2 });
 
                         //light source pos
                         Vec3 lv = matView * lightSource;
@@ -288,8 +282,6 @@ namespace GK
             s.Dispose();
             tex.Dispose();
             img.Dispose();
-            CircleShape c = new CircleShape(5) { Position = l };
-            target.Draw(c);
         }
         private void DrawTriangle(Triangle triangle, PrimitiveType primitiveType)
         {

@@ -86,10 +86,11 @@ namespace GK.Math3D
 
         public static Triangle operator *(Transform l, Triangle r)
         {
-            Vertex3 v0 = l * r.v0;
-            Vertex3 v1 = l * r.v1;
-            Vertex3 v2 = l * r.v2;
-            return new Triangle(v0, v1, v2);
+            Triangle result = new Triangle(r);
+            result.v0 = l * r.v0;
+            result.v1 = l * r.v1;
+            result.v2 = l * r.v2;
+            return result;
         }
         public static Transform operator *(Transform left, Transform right)
         {
