@@ -1,4 +1,6 @@
 ﻿using GK.Drawables;
+using GK.Drawables._2D;
+using GK.Interfaces;
 using GK.Math3D;
 using SFML.Graphics;
 using SFML.System;
@@ -69,98 +71,108 @@ namespace GK
             Mesh cube1 = new Mesh()
             {
                 // SOUTH
-                new Triangle( v00, v02, v06, (Vec4Color)Color.Blue ),
-                new Triangle( v00, v06, v04, (Vec4Color)Color.Blue ),
+                new Tri( v00, v02, v06, (Vec4Color)Color.Blue ),
+                new Tri( v00, v06, v04, (Vec4Color)Color.Blue ),
 
 		        // EAST                                                      
-		        new Triangle( v04, v06, v07, (Vec4Color)Color.Red ),
-                new Triangle( v04, v07, v05, (Vec4Color)Color.Red ),
+		        new Tri( v04, v06, v07, (Vec4Color)Color.Red ),
+                new Tri( v04, v07, v05, (Vec4Color)Color.Red ),
 
 		        // NORTH                                                     
-		        new Triangle( v05, v07, v03, (Vec4Color)Color.Blue ),
-                new Triangle( v05, v03, v01, (Vec4Color)Color.Blue ),
+		        new Tri( v05, v07, v03, (Vec4Color)Color.Blue ),
+                new Tri( v05, v03, v01, (Vec4Color)Color.Blue ),
 
 		        // WEST                                                      
-		        new Triangle( v01, v03, v02, (Vec4Color)Color.Red ),
-                new Triangle( v01, v02, v00, (Vec4Color)Color.Red ),
+		        new Tri( v01, v03, v02, (Vec4Color)Color.Red ),
+                new Tri( v01, v02, v00, (Vec4Color)Color.Red ),
 
 		        // TOP                                                       
-		        new Triangle( v02, v03, v07, (Vec4Color)Color.Green ),
-                new Triangle( v02, v07, v06, (Vec4Color)Color.Green ),
+		        new Tri( v02, v03, v07, (Vec4Color)Color.Green ),
+                new Tri( v02, v07, v06, (Vec4Color)Color.Green ),
                                           
 		        // BOTTOM                                                    
-		        new Triangle( v05, v01, v00, (Vec4Color)Color.Green ),
-                new Triangle( v05, v00, v04, (Vec4Color)Color.Green ),
+		        new Tri( v05, v01, v00, (Vec4Color)Color.Green ),
+                new Tri( v05, v00, v04, (Vec4Color)Color.Green ),
             };
             Mesh cube2 = new Mesh()
             {              
                 // SOUTH                  
-                new Triangle( v00, v02, v06, (Vec4Color)Color.Blue ),
-                new Triangle( v00, v06, v04, (Vec4Color)Color.Blue ),
+                new Tri( v00, v02, v06, (Vec4Color)Color.Blue ),
+                new Tri( v00, v06, v04, (Vec4Color)Color.Blue ),
                                           
 		        // EAST                                                      
-		        new Triangle( v04, v06, v07, (Vec4Color)Color.Red ),
-                new Triangle( v04, v07, v05, (Vec4Color)Color.Red ),
+		        new Tri( v04, v06, v07, (Vec4Color)Color.Red ),
+                new Tri( v04, v07, v05, (Vec4Color)Color.Red ),
                                           
 		        // NORTH                                                     
-		        new Triangle( v05, v07, v03, (Vec4Color)Color.Blue ),
-                new Triangle( v05, v03, v01, (Vec4Color)Color.Blue ),
+		        new Tri( v05, v07, v03, (Vec4Color)Color.Blue ),
+                new Tri( v05, v03, v01, (Vec4Color)Color.Blue ),
                                           
 		        // WEST                                                      
-		        new Triangle( v01, v03, v02, (Vec4Color)Color.Red ),
-                new Triangle( v01, v02, v00, (Vec4Color)Color.Red ),
+		        new Tri( v01, v03, v02, (Vec4Color)Color.Red ),
+                new Tri( v01, v02, v00, (Vec4Color)Color.Red ),
                                           
 		        // TOP                                                       
-		        new Triangle( v02, v03, v07, (Vec4Color)Color.Green ),
-                new Triangle( v02, v07, v06, (Vec4Color)Color.Green ),
+		        new Tri( v02, v03, v07, (Vec4Color)Color.Green ),
+                new Tri( v02, v07, v06, (Vec4Color)Color.Green ),
                                           
 		        // BOTTOM                                                    
-		        new Triangle( v05, v01, v00, (Vec4Color)Color.Green ),
-                new Triangle( v05, v00, v04, (Vec4Color)Color.Green ),
+		        new Tri( v05, v01, v00, (Vec4Color)Color.Green ),
+                new Tri( v05, v00, v04, (Vec4Color)Color.Green ),
             };
             Mesh cubeRGB = new Mesh()
             {              
                 // SOUTH                  
-                new Triangle( vert20, vert22, vert26),
-                new Triangle( vert20, vert26, vert24),
+                new Tri( vert20, vert22, vert26),
+                new Tri( vert20, vert26, vert24),
                                           
 		        // EAST                               
-		        new Triangle( vert24, vert26, vert27),
-                new Triangle( vert24, vert27, vert25),
+		        new Tri( vert24, vert26, vert27),
+                new Tri( vert24, vert27, vert25),
                                           
 		        // NORTH                              
-		        new Triangle( vert25, vert27, vert23),
-                new Triangle( vert25, vert23, vert21),
+		        new Tri( vert25, vert27, vert23),
+                new Tri( vert25, vert23, vert21),
                                           
 		        // WEST                               
-		        new Triangle( vert21, vert23, vert22),
-                new Triangle( vert21, vert22, vert20),
+		        new Tri( vert21, vert23, vert22),
+                new Tri( vert21, vert22, vert20),
                                           
 		        // TOP                                
-		        new Triangle( vert22, vert23, vert27),
-                new Triangle( vert22, vert27, vert26),
+		        new Tri( vert22, vert23, vert27),
+                new Tri( vert22, vert27, vert26),
                                           
 		        // BOTTOM                             
-		        new Triangle( vert25, vert21, vert20),
-                new Triangle( vert25, vert20, vert24),
+		        new Tri( vert25, vert21, vert20),
+                new Tri( vert25, vert20, vert24),
             };
+
+            Triangle triangle = new Triangle(v00, v02, v06, (Vec4Color)Color.Blue);
 
             cube1.Origin = new Vec3(0.5f, 0.5f, 0.5f);
             cube2.Origin = new Vec3(0.5f, 0.5f, 0.5f);
             cubeRGB.Origin = new Vec3(0.5f, 0.5f, 0.5f);
+            triangle.Origin = new Vec3(0.5f, 0.5f, 0.5f);
 
             Vec3 moveV = new Vec3(2, 2, 3);
             cube2.Position = moveV;
             cube2.Scale = new Vec3(1.5f,1.5f,1.5f);
             cubeRGB.Position = moveV / 2;
+            triangle.Position = moveV * 2;
 
-            List<Mesh> meshes = new List<Mesh>
+
+            List<Drawable3D> drawables = new List<Drawable3D>
             {
                 cube1,
                 cube2,
                 cubeRGB,
+                triangle,
             };
-
+            List<LightSource> lightSources = new List<LightSource>
+            {
+                new LightSource(){Position = new Vec3(-3,3,-3) },
+                new LightSource(){Position = new Vec3(3,3,6) },
+            };
             ///////////
             while (window.IsOpen)
             {
@@ -175,9 +187,11 @@ namespace GK
                 cube1.Rotation += v;
                 cube2.Rotation -= v;
                 cubeRGB.Rotation += v/2;
+                triangle.Rotation += v*2;
 
 
-                engine.Meshes = meshes;
+                engine.Drawables3D = drawables;
+                engine.LightSources = lightSources;
                 engine.MatInvCamera = Camera.Instance.InverseTransform;
                 engine.Projection = Camera.Instance.ProjectionTransform;
 

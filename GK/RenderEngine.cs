@@ -1,4 +1,5 @@
-﻿using GK.Math3D;
+﻿using GK.Interfaces;
+using GK.Math3D;
 using SFML.Graphics;
 using SFML.System;
 using System;
@@ -17,7 +18,8 @@ namespace GK
         private RenderEngine()
         {
         }
-        public List<Mesh> Meshes { get; set; }
+        public List<Drawable3D> Drawables3D { get; set; } = new List<Drawable3D>();
+        public List<LightSource> LightSources { get; set; } = new List<LightSource>();
         public Transform MatInvCamera { get; set; }
         public Transform Projection { get; set; }
         public RenderWindow Window { get; set; }
@@ -26,7 +28,7 @@ namespace GK
         private Color[,] Bitmap { get; set; }
 
 
-        private readonly float Ip = 1f;
+        //private readonly float Ip = 1f;
 
         private Vertex3 GetLineIntersectionWithPlane(Vec3 planePoint, Vec3 planeNormal, Vertex3 lineStart, Vertex3 lineEnd)
         {
@@ -44,7 +46,7 @@ namespace GK
             return new Vertex3(lineStart.Position + lineToIntersect, lineStart.Color + colorToIntersect);
         }
 
-        private List<Triangle> ClipAgainstPlane(Vec3 planePoint, Vec3 planeNormal, Triangle tri)
+        private List<Tri> ClipAgainstPlane(Vec3 planePoint, Vec3 planeNormal, Tri tri)
         {
             planeNormal = planeNormal.Normal();
 
@@ -71,14 +73,14 @@ namespace GK
             if (d2 >= 0) { insidePoints[nInsidePointCount++] = tri[2]; }
             else { outsidePoints[nOutsidePointCount++] = tri[2]; }
 
-            if (nInsidePointCount == 0) return new List<Triangle>();
+            if (nInsidePointCount == 0) return new List<Tri>();
             if (nInsidePointCount == 1 && nOutsidePointCount == 2)
             {
                 Vertex3 v0 = insidePoints[0];
                 Vertex3 v1 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[0]);
                 Vertex3 v2 = GetLineIntersectionWithPlane(planePoint, planeNormal, v0, outsidePoints[1]);
 
-                Triangle t = new Triangle(tri) { v0 = v0, v1 = v1, v2 = v2 };
+                Tri t = new Tri(tri) { v0 = v0, v1 = v1, v2 = v2 };
                 //swap so normalvectors sign stays the same
                 if (tri.NormalVector.Z * t.NormalVector.Z < 0)
                 {
@@ -86,7 +88,7 @@ namespace GK
                     t[1] = t[2];
                     t[2] = tmp;
                 }
-                return new List<Triangle>
+                return new List<Tri>
                 {
                     t,
                 };
@@ -101,8 +103,8 @@ namespace GK
                 Vertex3 v11 = v02;
                 Vertex3 v12 = GetLineIntersectionWithPlane(planePoint, planeNormal, v10, outsidePoints[0]);
 
-                Triangle t1 = new Triangle(tri) { v0 = v00, v1 = v01, v2 = v02 };
-                Triangle t2 = new Triangle(tri) { v0 = v10, v1 = v11, v2 = v12 };
+                Tri t1 = new Tri(tri) { v0 = v00, v1 = v01, v2 = v02 };
+                Tri t2 = new Tri(tri) { v0 = v10, v1 = v11, v2 = v12 };
                 //swap so normalvectors sign stays the same
                 if (tri.NormalVector.Z * t1.NormalVector.Z < 0)
                 {
@@ -116,7 +118,7 @@ namespace GK
                     t2[1] = t2[2];
                     t2[2] = tmp;
                 }
-                return new List<Triangle>
+                return new List<Tri>
                 {
                     t1,
                     t2,
@@ -124,12 +126,12 @@ namespace GK
             }
             if (nInsidePointCount == 3)
             {
-                return new List<Triangle>
+                return new List<Tri>
                 {
                     tri,
                 };
             }
-            return new List<Triangle>();
+            return new List<Tri>();
         }
 
         public void Draw(RenderTarget target, RenderStates states)
@@ -140,23 +142,22 @@ namespace GK
 
             Transform intoViewMoveAndScale = Transform.Identity.Translate(new Vec3(1, 1, 0)).Scale(new Vec3(Window.Size.X / 2, Window.Size.Y / 2, 1));
             Transform matView = intoViewMoveAndScale * Projection;
-            //light
-            Vec3 lightSource = MatInvCamera * new Vec3(-3, 3, -3);
 
-            Vector2f l = new Vector2f();
-            foreach (Mesh mesh in Meshes)
+            //Vector2f l = new Vector2f();
+            foreach (Drawable3D drawable in Drawables3D)
             {
+                Mesh mesh = drawable.GetMesh();
                 Transform matMesh = mesh.Transform;
                 Mesh transformed = new Mesh();
-                foreach (Triangle triangle in mesh)
+                foreach (Tri triangle in mesh)
                 {
                     transformed.Add(MatInvCamera * matMesh * triangle);
                 }
                 //clip in 3d against camera
                 Mesh clipped = new Mesh();
-                foreach (Triangle triangle in transformed)
+                foreach (Tri triangle in transformed)
                 {
-                    List<Triangle> clt = ClipAgainstPlane(new Vec3(0, 0, Camera.Instance.Near), new Vec3(0, 0, 1), triangle);
+                    List<Tri> clt = ClipAgainstPlane(new Vec3(0, 0, Camera.Instance.Near), new Vec3(0, 0, 1), triangle);
                     foreach (var item in clt)
                     {
                         clipped.Add(item);
@@ -165,35 +166,44 @@ namespace GK
 
 
                 Mesh projected = new Mesh();
-                foreach (Triangle triangle in clipped)
+                foreach (Tri triangle in clipped)
                 {
                     //only if visible
                     if (triangle.NormalVector.Dot(triangle[0].Position) < 0)
                     {
-                        // ILLUMINATION - Phong
-                        Vec3 N = triangle.NormalVector;
-                        float kd = triangle.kd;
-                        float ks = triangle.ks;
-                        float n = triangle.n;
-                        //camera position (0,0,0) - vertex position (after camerainverese)
-                        Vec3 V0 = (-triangle[0].Position).Normal();
-                        Vec3 V1 = (-triangle[1].Position).Normal();
-                        Vec3 V2 = (-triangle[2].Position).Normal();
-                        Vec3 L0 = (lightSource - triangle[0].Position).Normal();
-                        Vec3 L1 = (lightSource - triangle[1].Position).Normal();
-                        Vec3 L2 = (lightSource - triangle[2].Position).Normal();
-                        Vec3 R0 = (-L0 - 2 * N.Dot(-L0) * N).Normal();
-                        Vec3 R1 = (-L1 - 2 * N.Dot(-L1) * N).Normal();
-                        Vec3 R2 = (-L2 - 2 * N.Dot(-L2) * N).Normal();
-                        float I0 = Ip * (kd * N.Dot(L0) + ks * (float)Math.Pow(V0.Dot(R0), n));
-                        float I1 = Ip * (kd * N.Dot(L1) + ks * (float)Math.Pow(V1.Dot(R1), n));
-                        float I2 = Ip * (kd * N.Dot(L2) + ks * (float)Math.Pow(V2.Dot(R2), n));
-                        I0 = (float)Math.Max(I0, 0.2f);
-                        I1 = (float)Math.Max(I1, 0.2f);
-                        I2 = (float)Math.Max(I2, 0.2f);
-                        Vec4Color shadedColor0 = triangle[0].Color * I0;
-                        Vec4Color shadedColor1 = triangle[1].Color * I1;
-                        Vec4Color shadedColor2 = triangle[2].Color * I2;
+                        Vec4Color shadedColor0 = new Vec4Color();
+                        Vec4Color shadedColor1 = new Vec4Color();
+                        Vec4Color shadedColor2 = new Vec4Color();
+                        foreach (var lsrc in LightSources)
+                        {
+                            //light
+                            Vec3 lightPos = MatInvCamera * lsrc.Position;
+                            // ILLUMINATION - Phong
+                            Vec3 N = triangle.NormalVector;
+                            float kd = triangle.kd;
+                            float ks = triangle.ks;
+                            float n = triangle.n;
+                            //camera position (0,0,0) - vertex position (after camerainverese)
+                            Vec3 V0 = (-triangle[0].Position).Normal();
+                            Vec3 V1 = (-triangle[1].Position).Normal();
+                            Vec3 V2 = (-triangle[2].Position).Normal();
+                            Vec3 L0 = (lightPos - triangle[0].Position).Normal();
+                            Vec3 L1 = (lightPos - triangle[1].Position).Normal();
+                            Vec3 L2 = (lightPos - triangle[2].Position).Normal();
+                            Vec3 R0 = (-L0 - 2 * N.Dot(-L0) * N).Normal();
+                            Vec3 R1 = (-L1 - 2 * N.Dot(-L1) * N).Normal();
+                            Vec3 R2 = (-L2 - 2 * N.Dot(-L2) * N).Normal();
+                            float I0 = lsrc.Intensity * (kd * N.Dot(L0) + ks * (float)Math.Pow(V0.Dot(R0), n));
+                            float I1 = lsrc.Intensity * (kd * N.Dot(L1) + ks * (float)Math.Pow(V1.Dot(R1), n));
+                            float I2 = lsrc.Intensity * (kd * N.Dot(L2) + ks * (float)Math.Pow(V2.Dot(R2), n));
+                            I0 = Math.Max(I0, 0.2f);
+                            I1 = Math.Max(I1, 0.2f);
+                            I2 = Math.Max(I2, 0.2f);
+
+                            shadedColor0 += triangle[0].Color * I0;
+                            shadedColor1 += triangle[1].Color * I1;
+                            shadedColor2 += triangle[2].Color * I2;
+                        }
 
                         //project and move, and scale into view
                         Vec3 v0 = matView * triangle[0].Position;
@@ -202,11 +212,11 @@ namespace GK
                         Vertex3 vert0 = new Vertex3(v0, shadedColor0);
                         Vertex3 vert1 = new Vertex3(v1, shadedColor1);
                         Vertex3 vert2 = new Vertex3(v2, shadedColor2);
-                        projected.Add(new Triangle(triangle) { v0 = vert0, v1 = vert1, v2 = vert2 });
+                        projected.Add(new Tri(triangle) { v0 = vert0, v1 = vert1, v2 = vert2 });
 
                         //light source pos
-                        Vec3 lv = matView * lightSource;
-                        l = new Vector2f(lv.X, lv.Y);
+                        //Vec3 lv = matView * lsrc;
+                        //l = new Vector2f(lv.X, lv.Y);
 
                         //t.Color = shadedColor;
                         //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
@@ -215,9 +225,9 @@ namespace GK
                 }
                 //clip 2D to screen borders
                 Mesh clipped2D = new Mesh();
-                foreach (Triangle triangle in projected)
+                foreach (Tri triangle in projected)
                 {
-                    Queue<Triangle> qTris = new Queue<Triangle>();
+                    Queue<Tri> qTris = new Queue<Tri>();
                     qTris.Enqueue(triangle);
                     int nNewTriangles = 1;
 
@@ -225,10 +235,10 @@ namespace GK
                     {
                         while (nNewTriangles > 0)
                         {
-                            Triangle t = qTris.Dequeue();
+                            Tri t = qTris.Dequeue();
                             nNewTriangles--;
 
-                            List<Triangle> clippedTriangles = new List<Triangle>();
+                            List<Tri> clippedTriangles = new List<Tri>();
                             switch (p)
                             {
                                 case 0:
@@ -258,12 +268,8 @@ namespace GK
                     }
                 }
 
-
-                //draw
-
-
-
-                foreach (Triangle triangle in clipped2D)
+                //draw triangles
+                foreach (Tri triangle in clipped2D)
                 {
                     if (Options.Instance.DrawWireframe)
                         //test zbuffer wireframe
@@ -272,6 +278,19 @@ namespace GK
                         //test zbuffer fill
                         DrawTriangle(triangle, PrimitiveType.Triangles);
 
+                }
+                //draw light sources (4 pixels)
+                foreach (LightSource light in LightSources)
+                {
+                    Vec3 lpos = MatInvCamera * light.Position;
+                    if (lpos.Z > 0)
+                    {
+                        Vec3 lPosOnScreen = matView * lpos;
+                        DrawPixel(lPosOnScreen, (Vec4Color)Color.White);
+                        DrawPixel(lPosOnScreen+new Vec3(0,1), (Vec4Color)Color.White);
+                        DrawPixel(lPosOnScreen+new Vec3(1,0), (Vec4Color)Color.White);
+                        DrawPixel(lPosOnScreen+new Vec3(1,1), (Vec4Color)Color.White);
+                    }
                 }
             }
             //draw bitmap to screen
@@ -283,7 +302,7 @@ namespace GK
             tex.Dispose();
             img.Dispose();
         }
-        private void DrawTriangle(Triangle triangle, PrimitiveType primitiveType)
+        private void DrawTriangle(Tri triangle, PrimitiveType primitiveType)
         {
             if (primitiveType == PrimitiveType.Triangles)
             {

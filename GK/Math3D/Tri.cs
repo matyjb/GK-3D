@@ -1,11 +1,10 @@
-﻿using SFML.Graphics;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace GK.Math3D
 {
-    public struct Triangle : IEnumerable<Vertex3>
+    public struct Tri : IEnumerable<Vertex3>
     {
         public Vertex3 v0 { get; set; }
         public Vertex3 v1 { get; set; }
@@ -54,7 +53,7 @@ namespace GK.Math3D
             }
         }
 
-        public Triangle(Vertex3 v0, Vertex3 v1, Vertex3 v2, float ks = 1,float kd = 1, float n = 10)
+        public Tri(Vertex3 v0, Vertex3 v1, Vertex3 v2, float ks = 1,float kd = 1, float n = 10)
         {
             this.v0 = v0;
             this.v1 = v1;
@@ -63,7 +62,7 @@ namespace GK.Math3D
             this.kd = kd;
             this.n = n;
         }
-        public Triangle(Triangle t)
+        public Tri(Tri t)
         {
             v0 = t.v0;
             v1 = t.v1;
@@ -72,7 +71,7 @@ namespace GK.Math3D
             kd = t.kd;
             n = t.n;
         }
-        public Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Vec4Color color)
+        public Tri(Vec3 v0, Vec3 v1, Vec3 v2, Vec4Color color)
             :this(new Vertex3(v0,color),new Vertex3(v1,color),new Vertex3(v2,color))
         {
 

@@ -84,9 +84,9 @@ namespace GK.Math3D
             return new Vertex3(v, r.Color);
         }
 
-        public static Triangle operator *(Transform l, Triangle r)
+        public static Tri operator *(Transform l, Tri r)
         {
-            Triangle result = new Triangle(r);
+            Tri result = new Tri(r);
             result.v0 = l * r.v0;
             result.v1 = l * r.v1;
             result.v2 = l * r.v2;

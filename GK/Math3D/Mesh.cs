@@ -1,21 +1,27 @@
-﻿using System.Collections;
+﻿using GK.Interfaces;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace GK.Math3D
 {
-    public class Mesh : Transformable, IEnumerable<Triangle>
+    public class Mesh : Transformable, IEnumerable<Tri>, Drawable3D
     {
-        public List<Triangle> Triangles { get; set; } = new List<Triangle>();
+        public List<Tri> Triangles { get; set; } = new List<Tri>();
 
-        public void Add(Triangle t)
+        public void Add(Tri t)
         {
             Triangles.Add(t);
         }
 
-        public IEnumerator<Triangle> GetEnumerator()
+        public IEnumerator<Tri> GetEnumerator()
         {
             foreach (var t in Triangles)
                 yield return t;
+        }
+
+        public Mesh GetMesh()
+        {
+            return this;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
