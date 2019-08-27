@@ -18,7 +18,7 @@ namespace GK
         public static RenderWindow window = new RenderWindow(new VideoMode(Width, Height), "GK");
         public static RenderEngine engine = RenderEngine.Instance;
         public static Time deltaTime;
-        public static bool IsMouseCenterSnapped = false;
+        public static bool IsMouseLockedCenter = false;
 
         static void Main(string[] args)
         {
@@ -245,19 +245,19 @@ namespace GK
         {
             if (e.Button == Mouse.Button.Left)
             {
-                IsMouseCenterSnapped = true;
+                IsMouseLockedCenter = true;
                 window.SetMouseCursorVisible(false);
             }
             else if (e.Button == Mouse.Button.Right)
             {
-                IsMouseCenterSnapped = false;
+                IsMouseLockedCenter = false;
                 window.SetMouseCursorVisible(true);
             }
         }
 
         private static void Window_MouseMoved(object sender, MouseMoveEventArgs e)
         {
-            if (IsMouseCenterSnapped)
+            if (IsMouseLockedCenter)
             {
                 Vector2i windowCenter = (Vector2i)window.Size / 2;
                 Mouse.SetPosition(windowCenter, window);
