@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GK.Math3D
+﻿namespace GK.Math3D
 {
     public abstract class Transformable
     {

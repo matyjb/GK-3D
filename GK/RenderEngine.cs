@@ -1,7 +1,6 @@
 ﻿using GK.Interfaces;
 using GK.Math3D;
 using SFML.Graphics;
-using SFML.System;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -271,7 +270,7 @@ namespace GK
                 //draw triangles
                 foreach (Tri triangle in clipped2D)
                 {
-                    if (Options.Instance.DrawWireframe)
+                    if (Options.Instance.ShowWireframe)
                         //test zbuffer wireframe
                         DrawTriangle(triangle, PrimitiveType.LineStrip);
                     else

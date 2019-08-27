@@ -26,14 +26,7 @@ namespace GK
             Camera.Instance.Position = new Vec3(0, 0, -10);
             Clock deltaClock = new Clock();
             Font font = new Font("./Fonts/arial.ttf");
-            Text fpsAmount = new Text("fps: 0", font)
-            {
-                CharacterSize = 14,
-                FillColor = Color.White,
-                OutlineColor = Color.Black,
-                OutlineThickness = 1,
-                Style = Text.Styles.Bold,
-            };
+            string fpsAmount = "";
 
 
             deltaTime = deltaClock.Restart();
@@ -170,13 +163,13 @@ namespace GK
             };
             List<LightSource> lightSources = new List<LightSource>
             {
-                new LightSource(){Position = new Vec3(-3,3,-3) },
-                new LightSource(){Position = new Vec3(3,3,6) },
+                new LightSource(){Position = new Vec3(-3,3,-3), Intensity=0.5f },
+                new LightSource(){Position = new Vec3(1,6,6), Intensity=0.1f},
             };
             ///////////
             while (window.IsOpen)
             {
-                fpsAmount.DisplayedString = string.Format("fps: {0:0.00}", 1f / deltaTime.AsSeconds());
+                fpsAmount = string.Format("{0:0.00}", 1f / deltaTime.AsSeconds());
                 window.DispatchEvents();
                 Keys();
                 window.Clear();
@@ -200,8 +193,24 @@ namespace GK
                 /////////////////
                 window.Draw(engine);
 
-                if (Options.Instance.ShowHUD)
-                    window.Draw(fpsAmount);
+                if (Options.Instance.ShowDebugHUD)
+                {
+                    Vec3 p = Camera.Instance.Position;
+                    Vec3 r = Camera.Instance.Rotation * 180 / (float)Math.PI;
+                    string coords = string.Format("##Coordinates:\nx:{0}\ny:{1}\nz:{2}", p.X, p.Y, p.Z);
+                    string rot = string.Format("##Camera Rotation:\nx:{0}\ny:{1}\nz:{2}", r.X, r.Y, r.Z);
+                    string debugText = string.Format("fps: {0}\n{1}\n{2}", fpsAmount, coords, rot);
+                    Text t = new Text(debugText, font)
+                    {
+                        CharacterSize = 14,
+                        FillColor = Color.White,
+                        OutlineColor = Color.Black,
+                        OutlineThickness = 1,
+                        Style = Text.Styles.Bold,
+                    };
+                    window.Draw(t);
+                    t.Dispose();
+                }
                 if (Options.Instance.ShowAxis)
                     window.Draw(new AxisIndicator());
                 window.Display();
@@ -327,17 +336,23 @@ namespace GK
         {
             switch (e.Code)
             {
-                //hud toggle
-                case Keyboard.Key.F2:
-                    Options.Instance.ShowHUD = !Options.Instance.ShowHUD;
-                    break;
                 //debug - wireframe
                 case Keyboard.Key.F1:
-                    Options.Instance.DrawWireframe = !Options.Instance.DrawWireframe;
+                    Options.Instance.ShowWireframe = !Options.Instance.ShowWireframe;
                     break;
-                //debug - axis
+                //screenshot
+                case Keyboard.Key.F2:
+                    RenderWindow r = (RenderWindow)sender;
+                    Texture texture = new Texture(r.Size.X,r.Size.Y); texture.Update(window);
+                    Image img = texture.CopyToImage();
+                    img.SaveToFile(DateTime.Now.ToString("yyyy-MM-ddTHH_mm_ss") + ".jpg");
+                    img.Dispose();
+                    texture.Dispose();
+                    break;
+                //debug hud
                 case Keyboard.Key.F3:
                     Options.Instance.ShowAxis = !Options.Instance.ShowAxis;
+                    Options.Instance.ShowDebugHUD = !Options.Instance.ShowDebugHUD;
                     break;
                 default:
                     pressedKeys.Add(e.Code);
