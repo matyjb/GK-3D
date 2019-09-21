@@ -85,6 +85,7 @@
     <Compile Include="LightSource.cs" />
     <Compile Include="Interfaces\Drawable3D.cs" />
     <Compile Include="Math3D\Mesh.cs" />
+    <Compile Include="Drawables\Sphere.cs" />
     <Compile Include="Math3D\Transform.cs" />
     <Compile Include="Math3D\Transformable.cs" />
     <Compile Include="Math3D\Tri.cs" />

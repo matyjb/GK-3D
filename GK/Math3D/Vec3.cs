@@ -48,6 +48,15 @@ namespace GK.Math3D
             if (r == 0) return l;
             return new Vec3(l.X / r, l.Y / r, l.Z / r);
         }
+        public static Vec3 operator %(float l, Vec3 r)
+        {
+            return new Vec3(l % r.X, l % r.Y, l % r.Z);
+        }
+        public static Vec3 operator %(Vec3 l, float r)
+        {
+            if (r == 0) return l;
+            return new Vec3(l.X % r, l.Y % r, l.Z % r);
+        }
         public Vec3 Cross(Vec3 right)
         {
             float x = Y * right.Z - Z * right.Y;

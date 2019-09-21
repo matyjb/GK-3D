@@ -175,7 +175,6 @@ namespace GK
                         Vec4Color shadedColor2 = new Vec4Color();
                         foreach (var lsrc in LightSources)
                         {
-                            //light
                             Vec3 lightPos = MatInvCamera * lsrc.Position;
                             // ILLUMINATION - Phong
                             Vec3 N = triangle.NormalVector;
@@ -192,9 +191,13 @@ namespace GK
                             Vec3 R0 = (-L0 - 2 * N.Dot(-L0) * N).Normal();
                             Vec3 R1 = (-L1 - 2 * N.Dot(-L1) * N).Normal();
                             Vec3 R2 = (-L2 - 2 * N.Dot(-L2) * N).Normal();
-                            float I0 = lsrc.Intensity * (kd * N.Dot(L0) + ks * (float)Math.Pow(V0.Dot(R0), n));
-                            float I1 = lsrc.Intensity * (kd * N.Dot(L1) + ks * (float)Math.Pow(V1.Dot(R1), n));
-                            float I2 = lsrc.Intensity * (kd * N.Dot(L2) + ks * (float)Math.Pow(V2.Dot(R2), n));
+                            float minus = 1;
+                            if (V0.Dot(R0) < 0) minus = -1;
+                            float I0 = lsrc.Intensity * (kd * N.Dot(L0) + ks * minus * (float)Math.Pow(V0.Dot(R0), n));
+                            if (V1.Dot(R1) < 0) minus = -1;
+                            float I1 = lsrc.Intensity * (kd * N.Dot(L1) + ks * minus * (float)Math.Pow(V1.Dot(R1), n));
+                            if (V2.Dot(R2) < 0) minus = -1;
+                            float I2 = lsrc.Intensity * (kd * N.Dot(L2) + ks * minus * (float)Math.Pow(V2.Dot(R2), n));
                             I0 = Math.Max(I0, 0.2f);
                             I1 = Math.Max(I1, 0.2f);
                             I2 = Math.Max(I2, 0.2f);
@@ -212,14 +215,6 @@ namespace GK
                         Vertex3 vert1 = new Vertex3(v1, shadedColor1);
                         Vertex3 vert2 = new Vertex3(v2, shadedColor2);
                         projected.Add(new Tri(triangle) { v0 = vert0, v1 = vert1, v2 = vert2 });
-
-                        //light source pos
-                        //Vec3 lv = matView * lsrc;
-                        //l = new Vector2f(lv.X, lv.Y);
-
-                        //t.Color = shadedColor;
-                        //projected.Add(new Triangle(v0, v1, v2, triangle.Color));
-                        //projected.Add(t);
                     }
                 }
                 //clip 2D to screen borders

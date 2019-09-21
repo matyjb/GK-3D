@@ -20,7 +20,7 @@ namespace GK
         public static Time deltaTime;
         public static bool IsMouseLockedCenter = false;
 
-        static void Main(string[] args)
+        static void Main()
         {
             engine.Window = window;
             Camera.Instance.Position = new Vec3(0, 0, -10);
@@ -139,6 +139,7 @@ namespace GK
 		        new Tri( vert25, vert21, vert20),
                 new Tri( vert25, vert20, vert24),
             };
+            Sphere sphere = new Sphere(1, 3, (Vec4Color)Color.Green);
 
             Triangle triangle = new Triangle(v00, v02, v06, (Vec4Color)Color.Blue);
 
@@ -146,12 +147,14 @@ namespace GK
             cube2.Origin = new Vec3(0.5f, 0.5f, 0.5f);
             cubeRGB.Origin = new Vec3(0.5f, 0.5f, 0.5f);
             triangle.Origin = new Vec3(0.5f, 0.5f, 0.5f);
+            sphere.Origin = new Vec3(0.5f, 0.5f, 0.5f);
 
             Vec3 moveV = new Vec3(2, 2, 3);
             cube2.Position = moveV;
             cube2.Scale = new Vec3(1.5f,1.5f,1.5f);
             cubeRGB.Position = moveV / 2;
             triangle.Position = moveV * 2;
+            sphere.Position = new Vec3(0,5,0);
 
 
             List<Drawable3D> drawables = new List<Drawable3D>
@@ -160,11 +163,12 @@ namespace GK
                 cube2,
                 cubeRGB,
                 triangle,
+                sphere,
             };
             List<LightSource> lightSources = new List<LightSource>
             {
-                new LightSource(){Position = new Vec3(-3,3,-3), Intensity=0.5f },
-                new LightSource(){Position = new Vec3(1,6,6), Intensity=0.1f},
+                new LightSource(){Position = new Vec3(-3,3,-3), Intensity=1f },
+                //new LightSource(){Position = new Vec3(1,6,6), Intensity=0.1f},
             };
             ///////////
             while (window.IsOpen)

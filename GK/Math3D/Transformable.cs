@@ -1,4 +1,6 @@
-﻿namespace GK.Math3D
+﻿using System;
+
+namespace GK.Math3D
 {
     public abstract class Transformable
     {
@@ -8,7 +10,7 @@
         private Vec3 origin = new Vec3();
         private Transform parentTransform = Transform.Identity;
         public Vec3 Position { get => position; set { position = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
-        public Vec3 Rotation { get => rotation; set { rotation = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
+        public Vec3 Rotation { get => rotation; set { rotation = value % ((float)Math.PI*2); transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Vec3 Scale { get => scale; set { scale = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Vec3 Origin { get => origin; set { origin = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
         public Transform ParentTransform { get => parentTransform; set { parentTransform = value; transformUpdateNeeded = inverseTransformUpdateNeeded = true; } }
