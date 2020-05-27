@@ -157,130 +157,132 @@ namespace GK
 
             Transform matProjAndView = matView * matProj;
 
-            
+            Queue<Tri> sceneTriangles = new Queue<Tri>();
+            // collect all triangles
             foreach (Drawable3D drawable in scene.drawables)
             {
-                //1.
                 Mesh mesh = drawable.GetMesh(); // TODO: this should return already transformed mesh
-                Transform cameraAndWorldAndMeshTransform = cameraInvMatrixAndWorld * mesh.Transform;
-                Mesh transformed = new Mesh();
                 foreach (Tri tri in mesh)
                 {
-                    transformed.Add(cameraAndWorldAndMeshTransform * tri);
+                    sceneTriangles.Enqueue(mesh.Transform * tri);
                 }
-                //2.
-                Mesh clipped = new Mesh();
-                foreach (Tri tri in transformed)
+            }
+            //1.
+            int c = sceneTriangles.Count;
+            for (int i = 0; i < c; i++)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                sceneTriangles.Enqueue(cameraInvMatrixAndWorld * t);
+            }
+            //2.
+            for (int i = 0; i < c; i++)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                List<Tri> clt = ClipAgainstPlane(new Vec3(0, 0, scene.mainCamera.Near), new Vec3(0, 0, 1), t);
+                foreach (var clippedTriangle in clt)
                 {
-                    List<Tri> clt = ClipAgainstPlane(new Vec3(0, 0, scene.mainCamera.Near), new Vec3(0, 0, 1), tri);
-                    foreach (var clippedTriangle in clt)
+                    sceneTriangles.Enqueue(clippedTriangle);
+                }
+            }
+            c = sceneTriangles.Count;
+            //3.
+            for (int i = 0; i < c; i++)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                if (t.NormalVector.Dot(t[0].Position) < 0)
+                    sceneTriangles.Enqueue(t);
+            }
+            c = sceneTriangles.Count;
+            //4.
+            for (int i = 0; i < c; i++)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                Vec4[] shadedColors = new Vec4[3] { new Vec4(), new Vec4(), new Vec4() };
+                // ILLUMINATION - Phong
+                Vec3 N = t.NormalVector;
+                float kd = t.kd;
+                float ks = t.ks;
+                float n = t.n;
+                foreach (LightSource lsrc in scene.lightSources)
+                {
+                    Vec3 lightPos = cameraInvMatrixAndWorld * lsrc.Position;
+                    //camera position (0,0,0) - vertex position (after camerainverese)
+                    for (int j = 0; j < 3; j++)
                     {
-                        clipped.Add(clippedTriangle);
+                        Vec3 V = (-t[j].Position).Normal();
+                        Vec3 L = (lightPos - t[j].Position).Normal();
+                        Vec3 R = (-L - 2 * N.Dot(-L) * N).Normal();
+                        float minus = (V.Dot(R) < 0) ? -1 : 1;
+                        float I = lsrc.Intensity * (kd * N.Dot(L) + ks * minus * (float)Math.Pow(V.Dot(R), n));
+                        Math.Max(I, 0.2f); // minimalne oświetlenie 0.2f (ambient)
+                        shadedColors[j] += t[j].Color * I;
                     }
                 }
-                //3.
-                Mesh facedForwardToCamera = new Mesh();
-                foreach (Tri tri in clipped)
+                Vertex3 vert0 = new Vertex3(t[0].Position, shadedColors[0]);
+                Vertex3 vert1 = new Vertex3(t[1].Position, shadedColors[1]);
+                Vertex3 vert2 = new Vertex3(t[2].Position, shadedColors[2]);
+                sceneTriangles.Enqueue(new Tri(vert0, vert1, vert2, t.ks, t.kd, t.n));
+            }
+            //5.
+            for (int i = 0; i < c; i++)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                sceneTriangles.Enqueue(matProjAndView * t);
+            }
+            //6.
+            for (int i = 0; i < c; i++)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                Queue<Tri> qTris = new Queue<Tri>();
+                qTris.Enqueue(t);
+                int nNewTriangles = 1;
+
+                for (int p = 0; p < 4; p++)
                 {
-                    if (tri.NormalVector.Dot(tri[0].Position) < 0) facedForwardToCamera.Add(tri);
-                }
-                //4.
-                Mesh shaded = new Mesh();
-                foreach (Tri tri in facedForwardToCamera)
-                {
-                    Vec4[] shadedColors = new Vec4[3] { new Vec4(), new Vec4(), new Vec4() };
-                    // ILLUMINATION - Phong
-                    Vec3 N = tri.NormalVector;
-                    float kd = tri.kd;
-                    float ks = tri.ks;
-                    float n = tri.n;
-                    foreach (LightSource lsrc in scene.lightSources)
+                    while (nNewTriangles > 0)
                     {
-                        Vec3 lightPos = cameraInvMatrixAndWorld * lsrc.Position;
-                        //camera position (0,0,0) - vertex position (after camerainverese)
-                        for (int i = 0; i < 3; i++)
+                        Tri t2 = qTris.Dequeue();
+                        nNewTriangles--;
+
+                        List<Tri> clippedTriangles = new List<Tri>();
+                        switch (p)
                         {
-                            Vec3 V = (-tri[i].Position).Normal();
-                            Vec3 L = (lightPos - tri[i].Position).Normal();
-                            Vec3 R = (-L - 2 * N.Dot(-L) * N).Normal();
-                            float minus = (V.Dot(R) < 0) ? -1 : 1;
-                            float I = lsrc.Intensity * (kd * N.Dot(L) + ks * minus * (float)Math.Pow(V.Dot(R), n));
-                            Math.Max(I, 0.2f); // minimalne oświetlenie 0.2f (ambient)
-                            shadedColors[i] += tri[i].Color * I;
+                            case 0:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(0, 1, 0), t2);
+                                break;
+                            case 1:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(0, height - 1, 0), new Vec3(0, -1, 0), t2);
+                                break;
+                            case 2:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(1, 0, 0), t2);
+                                break;
+                            case 3:
+                                clippedTriangles = ClipAgainstPlane(new Vec3(width - 1, 0, 0), new Vec3(-1, 0, 0), t2);
+                                break;
+
+                        }
+                        foreach (var item in clippedTriangles)
+                        {
+                            qTris.Enqueue(item);
                         }
                     }
-                    Vertex3 vert0 = new Vertex3(tri[0].Position, shadedColors[0]);
-                    Vertex3 vert1 = new Vertex3(tri[1].Position, shadedColors[1]);
-                    Vertex3 vert2 = new Vertex3(tri[2].Position, shadedColors[2]);
-                    shaded.Add(new Tri(vert0, vert1, vert2, tri.ks, tri.kd, tri.n));
+                    nNewTriangles = qTris.Count;
                 }
-                //5.
-                Mesh projected = new Mesh();
-                foreach (Tri tri in shaded)
+                foreach (var item in qTris)
                 {
-                    Vec3 v0 = matProjAndView * tri[0].Position;
-                    Vec3 v1 = matProjAndView * tri[1].Position;
-                    Vec3 v2 = matProjAndView * tri[2].Position;
-                    Vertex3 vert0 = new Vertex3(v0, tri[0].Color);
-                    Vertex3 vert1 = new Vertex3(v1, tri[1].Color);
-                    Vertex3 vert2 = new Vertex3(v2, tri[2].Color);
-                    projected.Add(new Tri(vert0, vert1, vert2, tri.ks, tri.kd, tri.n));
+                    sceneTriangles.Enqueue(item);
                 }
-                //6.
-                Mesh clipped2D = new Mesh();
-                foreach (Tri tri in projected)
-                {
-                    Queue<Tri> qTris = new Queue<Tri>();
-                    qTris.Enqueue(tri);
-                    int nNewTriangles = 1;
-
-                    for (int p = 0; p < 4; p++)
-                    {
-                        while (nNewTriangles > 0)
-                        {
-                            Tri t = qTris.Dequeue();
-                            nNewTriangles--;
-
-                            List<Tri> clippedTriangles = new List<Tri>();
-                            switch (p)
-                            {
-                                case 0:
-                                    clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(0, 1, 0), t);
-                                    break;
-                                case 1:
-                                    clippedTriangles = ClipAgainstPlane(new Vec3(0, height - 1, 0), new Vec3(0, -1, 0), t);
-                                    break;
-                                case 2:
-                                    clippedTriangles = ClipAgainstPlane(new Vec3(), new Vec3(1, 0, 0), t);
-                                    break;
-                                case 3:
-                                    clippedTriangles = ClipAgainstPlane(new Vec3(width - 1, 0, 0), new Vec3(-1, 0, 0), t);
-                                    break;
-
-                            }
-                            foreach (var item in clippedTriangles)
-                            {
-                                qTris.Enqueue(item);
-                            }
-                        }
-                        nNewTriangles = qTris.Count;
-                    }
-                    foreach (var item in qTris)
-                    {
-                        clipped2D.Add(item);
-                    }
-                }
-                //7.
-                foreach (Tri triangle in clipped2D)
-                {
-                    if (Options.Instance.ShowWireframe)
-                        //test zbuffer wireframe
-                        DrawTriangle(triangle, PrimitiveType.LineStrip);
-                    else
-                        //test zbuffer fill
-                        DrawTriangle(triangle, PrimitiveType.Triangles);
-
-                }
+            }
+            //7.
+            while(sceneTriangles.Count > 0)
+            {
+                Tri t = sceneTriangles.Dequeue();
+                if (Options.Instance.ShowWireframe)
+                    //test zbuffer wireframe
+                    DrawTriangle(t, PrimitiveType.LineStrip);
+                else
+                    //test zbuffer fill
+                    DrawTriangle(t, PrimitiveType.Triangles);
             }
             //8.
             foreach (LightSource light in scene.lightSources)
