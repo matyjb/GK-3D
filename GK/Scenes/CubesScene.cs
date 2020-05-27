@@ -12,10 +12,6 @@ namespace GK.Scenes
     class CubesScene : Scene
     {
         bool IsMouseLockedCenter { get; set; } = false;
-        
-        //this font should go to some kind resource manager
-        Font font = new Font("./Fonts/arial.ttf");
-        string fpsAmount = "";
 
         public override void Load()
         {
@@ -228,32 +224,5 @@ namespace GK.Scenes
                 }
             }
         }
-        //public override void Window_KeyPressed(object sender, KeyEventArgs e)
-        //{
-        //    switch (e.Code)
-        //    {
-        //        //debug - wireframe
-        //        //case Keyboard.Key.F1:
-        //        //    Options.Instance.ShowWireframe = !Options.Instance.ShowWireframe;
-        //        //    break;
-        //        ////screenshot
-        //        //case Keyboard.Key.F2:
-        //        //    RenderWindow r = (RenderWindow)sender;
-        //        //    Texture texture = new Texture(r.Size.X,r.Size.Y); texture.Update(window);
-        //        //    Image img = texture.CopyToImage();
-        //        //    img.SaveToFile(DateTime.Now.ToString("yyyy-MM-ddTHH_mm_ss") + ".jpg");
-        //        //    img.Dispose();
-        //        //    texture.Dispose();
-        //        //    break;
-        //        ////debug hud
-        //        //case Keyboard.Key.F3:
-        //        //    Options.Instance.ShowAxis = !Options.Instance.ShowAxis;
-        //        //    Options.Instance.ShowDebugHUD = !Options.Instance.ShowDebugHUD;
-        //        //    break;
-        //        default:
-        //            base.Window_KeyPressed(sender, e);
-        //            break;
-        //    }
-        //}
     }
 }
