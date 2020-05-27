@@ -32,7 +32,7 @@ namespace GK.Drawables._2D
             kd = t.kd;
             n = t.n;
         }
-        public Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Vec4Color color)
+        public Triangle(Vec3 v0, Vec3 v1, Vec3 v2, Vec4 color)
             : this(new Vertex3(v0, color), new Vertex3(v1, color), new Vertex3(v2, color))
         { }
         public Mesh GetMesh()

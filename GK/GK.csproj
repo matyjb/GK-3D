@@ -84,6 +84,7 @@
     <Compile Include="Drawables\AxisIndicator.cs" />
     <Compile Include="LightSource.cs" />
     <Compile Include="Interfaces\Drawable3D.cs" />
+    <Compile Include="MainWindow.cs" />
     <Compile Include="Math3D\Mesh.cs" />
     <Compile Include="Drawables\Sphere.cs" />
     <Compile Include="Math3D\Transform.cs" />
@@ -91,12 +92,14 @@
     <Compile Include="Math3D\Tri.cs" />
     <Compile Include="Math3D\Vec2.cs" />
     <Compile Include="Math3D\Vec3.cs" />
-    <Compile Include="Math3D\Vec4Color.cs" />
+    <Compile Include="Math3D\Vec4.cs" />
     <Compile Include="Math3D\Vertex3.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RenderEngine.cs" />
+    <Compile Include="Scene.cs" />
+    <Compile Include="Scenes\CubesScene.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

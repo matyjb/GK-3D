@@ -1,4 +1,4 @@
-﻿using SFML.System;
+﻿//using SFML.System;
 using System;
 
 namespace GK.Math3D
@@ -72,9 +72,9 @@ namespace GK.Math3D
         {
             return this / Lenght;
         }
-        public static explicit operator Vector2f(Vec3 from)
+        public static explicit operator Vec2(Vec3 from)
         {
-            return new Vector2f(from.X, from.Y);
+            return new Vec2(from.X, from.Y);
         }
 
         public override string ToString()

@@ -6,7 +6,7 @@ namespace GK.Drawables
 {
     public class Sphere : Mesh
     {
-        public Sphere(float radius, uint subdivisions, Vec4Color color)
+        public Sphere(float radius, uint subdivisions, Vec4 color)
         {
             Mesh ico20 = BuildIcosahedron(radius, color);
             Queue<Tri> tris = new Queue<Tri>();
@@ -38,7 +38,7 @@ namespace GK.Drawables
             newV *= scale;
             return new Vertex3(newV,(v1.Color+v2.Color)/2);
         }
-        private Mesh BuildIcosahedron(float radius, Vec4Color color)
+        private Mesh BuildIcosahedron(float radius, Vec4 color)
         {
             Mesh ico20 = new Mesh();
             //The golden ratio
