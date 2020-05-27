@@ -8,7 +8,7 @@ using Transform = GK.Math3D.Transform;
 
 namespace GK
 {
-    abstract class Scene
+    abstract class Scene : Drawable
     {
         public Camera mainCamera = new Camera();
         public Transform worldTransform = Transform.Identity;
@@ -21,11 +21,11 @@ namespace GK
 
 
         public virtual void Load() { }
-        public virtual void Update(Time deltaTime) { Keys(); this.deltaTime = deltaTime; }
-        public virtual Texture RenderScene(uint width, uint height) 
+        public virtual void Update(Time deltaTime) { this.deltaTime = deltaTime; Keys(); }
+
+        public void Draw(RenderTarget target, RenderStates states)
         {
-            Texture texture = RenderEngine.Instance.RenderScene(this, width, height);
-            return texture; 
+            RenderEngine.Instance.RenderScene(this, target, states);
         }
 
         public virtual void Window_MouseWheelScrolled(object sender, MouseWheelScrollEventArgs e) { }
@@ -42,5 +42,6 @@ namespace GK
         {
             pressedKeys.Add(e.Code);
         }
+
     }
 }

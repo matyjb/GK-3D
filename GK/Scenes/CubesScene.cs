@@ -138,6 +138,7 @@ namespace GK.Scenes
             drawables.Add(triangle);
             drawables.Add(sphere);
             lightSources.Add(new LightSource() { Position = new Vec3(-3, 3, -3), Intensity = 1f });
+            lightSources.Add(new LightSource() { Position = new Vec3(3, -3, 5), Intensity = 1f });
             mainCamera.Position = new Vec3(0, 0, -10);
         }
 

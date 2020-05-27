@@ -36,13 +36,8 @@ namespace GK
             {
                 DispatchEvents();
                 scenes.Peek().Update(clock.Restart());
-                Texture tex = scenes.Peek().RenderScene(Size.X, Size.Y);
                 Clear();
-                /////////////////
-                Sprite s = new Sprite(tex);
-                Draw(s);
-                s.Dispose();
-                tex.Dispose();
+                Draw(scenes.Peek());
                 Display();
             }
         }

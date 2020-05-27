@@ -125,7 +125,7 @@ namespace GK
             return new List<Tri>();
         }
 
-        public Texture RenderScene(Scene scene, uint width, uint height)
+        public void RenderScene(Scene scene, RenderTarget target, RenderStates states)
         {
             //1.matworld * transform mesha razy trojkat
             //2.przytniecie trojkatow kamerą(cos prawie jak culling frustrum ale o kacie 180 stopni)
@@ -135,8 +135,10 @@ namespace GK
             //6.clip2D(czyli przyciac te ktore sa poza obrazem)
             //7.narysowac trojkaty
             //8.narysowac lightsource
-            //9.return Texture
+            //9.narysowac texture na target
 
+            uint width = target.Size.X;
+            uint height = target.Size.Y;
             //init frame
             ZBuffer = new float[width, height];
             Bitmap = new Color[width, height];
@@ -197,7 +199,7 @@ namespace GK
             for (int i = 0; i < c; i++)
             {
                 Tri t = sceneTriangles.Dequeue();
-                Vec4[] shadedColors = new Vec4[3] { new Vec4(), new Vec4(), new Vec4() };
+                float[] Is = new float[3] { 0, 0, 0 };
                 // ILLUMINATION - Phong
                 Vec3 N = t.NormalVector;
                 float kd = t.kd;
@@ -206,21 +208,30 @@ namespace GK
                 foreach (LightSource lsrc in scene.lightSources)
                 {
                     Vec3 lightPos = cameraInvMatrixAndWorld * lsrc.Position;
-                    //camera position (0,0,0) - vertex position (after camerainverese)
                     for (int j = 0; j < 3; j++)
                     {
+                        //camera position (0,0,0) - vertex position (after camerainverese)
                         Vec3 V = (-t[j].Position).Normal();
                         Vec3 L = (lightPos - t[j].Position).Normal();
                         Vec3 R = (-L - 2 * N.Dot(-L) * N).Normal();
                         float minus = (V.Dot(R) < 0) ? -1 : 1;
                         float I = lsrc.Intensity * (kd * N.Dot(L) + ks * minus * (float)Math.Pow(V.Dot(R), n));
-                        Math.Max(I, 0.2f); // minimalne oświetlenie 0.2f (ambient)
-                        shadedColors[j] += t[j].Color * I;
+                        Math.Max(I, 0);
+                        Is[j] += I;
                     }
                 }
-                Vertex3 vert0 = new Vertex3(t[0].Position, shadedColors[0]);
-                Vertex3 vert1 = new Vertex3(t[1].Position, shadedColors[1]);
-                Vertex3 vert2 = new Vertex3(t[2].Position, shadedColors[2]);
+                //ambient light 0.2
+                for (int j = 0; j < 3; j++)
+                {
+                    Is[j] = Math.Max(Is[j], 0.2f);
+                }
+                Vec4 color0 = new Vec4(t[0].Color.R * Is[0], t[0].Color.G * Is[0], t[0].Color.B * Is[0], t[0].Color.A);
+                Vec4 color1 = new Vec4(t[1].Color.R * Is[1], t[1].Color.G * Is[1], t[1].Color.B * Is[1], t[1].Color.A);
+                Vec4 color2 = new Vec4(t[2].Color.R * Is[2], t[2].Color.G * Is[2], t[2].Color.B * Is[2], t[2].Color.A);
+
+                Vertex3 vert0 = new Vertex3(t[0].Position, color0);
+                Vertex3 vert1 = new Vertex3(t[1].Position, color1);
+                Vertex3 vert2 = new Vertex3(t[2].Position, color2);
                 sceneTriangles.Enqueue(new Tri(vert0, vert1, vert2, t.ks, t.kd, t.n));
             }
             //5.
@@ -290,7 +301,7 @@ namespace GK
                 Vec3 lpos = cameraInvMatrixAndWorld * light.Position;
                 if (lpos.Z > 0)
                 {
-                    Vec3 lPosOnScreen = matView * lpos;
+                    Vec3 lPosOnScreen = matProjAndView * lpos;
                     DrawPixel(lPosOnScreen, (Vec4)Color.White);
                     DrawPixel(lPosOnScreen + new Vec3(0, 1), (Vec4)Color.White);
                     DrawPixel(lPosOnScreen + new Vec3(1, 0), (Vec4)Color.White);
@@ -298,7 +309,13 @@ namespace GK
                 }
             }
             //9.
-            return new Texture(new Image(Bitmap));
+            Image img = new Image(Bitmap);
+            Texture texture = new Texture(img);
+            Sprite s = new Sprite(texture);
+            target.Draw(s, states);
+            s.Dispose();
+            texture.Dispose();
+            img.Dispose();
         }
         private void DrawTriangle(Tri triangle, PrimitiveType primitiveType)
         {
@@ -435,9 +452,6 @@ namespace GK
             }
             else if (primitiveType == PrimitiveType.LineStrip)
             {
-                //DrawLine(triangle[0], triangle.Color, triangle[1], triangle.Color);
-                //DrawLine(triangle[1], triangle.Color, triangle[2], triangle.Color);
-                //DrawLine(triangle[2], triangle.Color, triangle[0], triangle.Color);
                 DrawLine(triangle[0].Position, (Vec4)Color.White, triangle[1].Position, (Vec4)Color.White, false);
                 DrawLine(triangle[1].Position, (Vec4)Color.White, triangle[2].Position, (Vec4)Color.White, false);
                 DrawLine(triangle[2].Position, (Vec4)Color.White, triangle[0].Position, (Vec4)Color.White, false);
@@ -517,7 +531,6 @@ namespace GK
                 int xPixel1 = xEnd;
                 int yPixel1 = ipart(yEnd);
 
-                //here
                 Vec4 c0 = color0;
                 Vec4 c1 = color0;
                 c0.A *= rfpart(yEnd) * xGap;
@@ -526,15 +539,11 @@ namespace GK
                 {
                     DrawPixel(new Vec3(yPixel1, xPixel1, z0), c0);
                     DrawPixel(new Vec3(yPixel1 + 1, xPixel1, z0), c1);
-                    //SetPixel(g, yPixel1, xPixel1, c1);
-                    //SetPixel(g, yPixel1 + 1, xPixel1, c2);
                 }
                 else
                 {
                     DrawPixel(new Vec3(xPixel1, yPixel1, z0), c0);
                     DrawPixel(new Vec3(xPixel1, yPixel1 + 1, z0), c1);
-                    //SetPixel(g, xPixel1, yPixel1, c1);
-                    //SetPixel(g, xPixel1, yPixel1 + 1, c2);
                 }
                 float intery = yEnd + gradient;
 
@@ -545,7 +554,6 @@ namespace GK
                 int xPixel2 = xEnd;
                 int yPixel2 = ipart(yEnd);
 
-                ///here
                 c0 = color1;
                 c1 = color1;
                 c0.A *= rfpart(yEnd) * xGap;
@@ -554,15 +562,11 @@ namespace GK
                 {
                     DrawPixel(new Vec3(yPixel2, xPixel2, z1), c0);
                     DrawPixel(new Vec3(yPixel2 + 1, xPixel2, z1), c1);
-                    //SetPixel(g, yPixel2, xPixel2, c1);
-                    //SetPixel(g, yPixel2 + 1, xPixel2, c2);
                 }
                 else
                 {
                     DrawPixel(new Vec3(xPixel2, yPixel2, z1), c0);
                     DrawPixel(new Vec3(xPixel2, yPixel2 + 1, z1), c1);
-                    //SetPixel(g, xPixel2, yPixel2, c1);
-                    //SetPixel(g, xPixel2, yPixel2 + 1, c2);
                 }
 
 
@@ -571,19 +575,14 @@ namespace GK
                 {
                     for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
                     {
-                        ///here
                         float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
                         Vec4 c = (1 - t) * color0 + t * color1;
                         c0 = c;
                         c1 = c;
                         c0.A *= rfpart(intery) * xGap;
                         c1.A *= fpart(intery) * xGap;
-                        //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
-                        //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
                         DrawPixel(new Vec3(ipart(intery), x, z1), c0);
                         DrawPixel(new Vec3(ipart(intery) + 1, x, z1), c1);
-                        //SetPixel(g, ipart(intery), x, c1);
-                        //SetPixel(g, ipart(intery) + 1, x, c2);
                         intery += gradient;
                     }
                 }
@@ -591,7 +590,6 @@ namespace GK
                 {
                     for (int x = (xPixel1 + 1); x <= xPixel2 - 1; x++)
                     {
-                        ///here
                         float t = (x - xPixel1 - 1) / (float)(xPixel2 - xPixel1 - 2);
                         Vec4 c = (1 - t) * color0 + t * color1;
                         c0 = c;
@@ -599,13 +597,8 @@ namespace GK
                         c0.A *= rfpart(intery) * xGap;
                         c1.A *= fpart(intery) * xGap;
 
-                        //c1 = Color.FromArgb((int)(rfpart(intery) * 255), Color);
-                        //c2 = Color.FromArgb((int)(fpart(intery) * 255), Color);
                         DrawPixel(new Vec3(x, ipart(intery), z1), c0);
                         DrawPixel(new Vec3(x, ipart(intery) + 1, z1), c1);
-
-                        //SetPixel(g, x, ipart(intery), c1);
-                        //SetPixel(g, x, ipart(intery) + 1, c2);
                         intery += gradient;
                     }
                 }
