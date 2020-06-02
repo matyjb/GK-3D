@@ -13,9 +13,8 @@ namespace GK.Scenes
     {
         bool IsMouseLockedCenter { get; set; } = false;
 
-        public override void Load()
+        public CubesScene()
         {
-            base.Load();
             Vec3 v00 = new Vec3(0, 0, 0);
             Vec3 v01 = new Vec3(0, 0, 1);
             Vec3 v02 = new Vec3(0, 1, 0);

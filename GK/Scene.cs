@@ -25,7 +25,6 @@ namespace GK
         //this font should go to some kind resource manager
         protected Font font = new Font("./Fonts/arial.ttf");
 
-        public virtual void Load() { }
         public virtual void Update(Time deltaTime) { this.deltaTime = deltaTime; Keys(); }
 
         public void Draw(RenderTarget target, RenderStates states)

@@ -27,7 +27,6 @@ namespace GK
             MouseWheelScrolled += Window_MouseWheelScrolled;
 
             scenes.Push(new CubesScene());
-            scenes.Peek().Load();
         }
 
         public void StartMainLoop()
