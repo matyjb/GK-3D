@@ -1,5 +1,5 @@
 # GK-3D
-projekt na przedmiot Grafika Komputerowa - program rysuje grafike 3d z oświetleniem
+Simple 3D engine created to learn about drawing 3D graphics from scratch
 ![GK_6FfYB0BffN](https://github.com/matyjb/GK-3D/assets/19827704/565730cf-45ff-46d1-9c90-46df26dc8f70)
 
 ## How to run
