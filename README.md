@@ -1,5 +1,6 @@
 # GK-3D
 projekt na przedmiot Grafika Komputerowa - program rysuje grafike 3d z oświetleniem
+![GK_6FfYB0BffN](https://github.com/matyjb/GK-3D/assets/19827704/565730cf-45ff-46d1-9c90-46df26dc8f70)
 
 ## How to run
  - After building copy libraries from packages/CSFML.2.5.0/runtimes to build folder
